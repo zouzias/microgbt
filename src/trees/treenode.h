@@ -129,23 +129,34 @@ namespace microgbt {
             this->_splitFeatureIndex = bestGain.getBestFeatureId();
             this->_splitNumericValue = bestGain.splitValue();
 
-            // Recurse on left and right subtree
-            Dataset leftDataset(trainSet, bestGain, SplitInfo::Side::Left);
-            Vector leftGradient = bestGain.split(gradient, SplitInfo::Side::Left);
-            Vector leftHessian = bestGain.split(hessian, SplitInfo::Side::Left);
-            Vector leftPreviousPreds = bestGain.split(previousPreds, SplitInfo::Side::Left);
-            this->leftSubTree = std::unique_ptr<TreeNode>(
-                    new TreeNode(_lambda, _minSplitGain, _minTreeSize, _maxDepth));
-            leftSubTree->build(leftDataset, leftPreviousPreds, leftGradient, leftHessian, shrinkage, depth + 1);
+            #pragma omp parallel sections
+            {
+                // Recurse on the left subtree
+                #pragma omp section
+                {
+                    Dataset leftDataset(trainSet, bestGain, SplitInfo::Side::Left);
+                    Vector leftGradient = bestGain.split(gradient, SplitInfo::Side::Left);
+                    Vector leftHessian = bestGain.split(hessian, SplitInfo::Side::Left);
+                    Vector leftPreviousPreds = bestGain.split(previousPreds, SplitInfo::Side::Left);
+                    this->leftSubTree = std::unique_ptr<TreeNode>(
+                            new TreeNode(_lambda, _minSplitGain, _minTreeSize, _maxDepth));
+                    leftSubTree->build(leftDataset, leftPreviousPreds, leftGradient, leftHessian, shrinkage, depth + 1);
+                }
 
-            Dataset rightDataset(trainSet, bestGain, SplitInfo::Side::Right);
-            Vector rightGradient = bestGain.split(gradient, SplitInfo::Side::Right);
-            Vector rightHessian = bestGain.split(hessian, SplitInfo::Side::Right);
-            Vector rightPreviousPreds = bestGain.split(previousPreds, SplitInfo::Side::Right);
 
-            this->rightSubTree = std::unique_ptr<TreeNode>(
-                    new TreeNode(_lambda, _minSplitGain, _minTreeSize, _maxDepth));
-            rightSubTree->build(rightDataset, rightPreviousPreds, rightGradient, rightHessian, shrinkage, depth + 1);
+                // Recurse on the right subtree
+                #pragma omp section
+                {
+                    Dataset rightDataset(trainSet, bestGain, SplitInfo::Side::Right);
+                    Vector rightGradient = bestGain.split(gradient, SplitInfo::Side::Right);
+                    Vector rightHessian = bestGain.split(hessian, SplitInfo::Side::Right);
+                    Vector rightPreviousPreds = bestGain.split(previousPreds, SplitInfo::Side::Right);
+
+                    this->rightSubTree = std::unique_ptr<TreeNode>(
+                            new TreeNode(_lambda, _minSplitGain, _minTreeSize, _maxDepth));
+                    rightSubTree->build(rightDataset, rightPreviousPreds, rightGradient, rightHessian, shrinkage, depth + 1);
+                }
+            }
         }
 
         /**
