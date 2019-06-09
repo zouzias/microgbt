@@ -96,4 +96,4 @@ namespace microgbt {
                 return splitVector;
             }
         };
-}
+} // namespace microgbt

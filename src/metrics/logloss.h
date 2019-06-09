@@ -7,12 +7,12 @@
 
 namespace microgbt {
 
+    using Vector = std::vector<double>;
+
     /**
-     * Log loss metric (a.k.a. logistic loss)
+     * Log loss metric
      *
      * Logistic loss: y_i ln(1 + exp(-pred_i)) + (1-y_i) ln( 1 + exp(pred_i))
-     *
-     * Reference: https://en.wikipedia.org/wiki/Loss_functions_for_classification#Logistic_loss
      */
     class LogLoss :
             public Metric {
@@ -51,30 +51,35 @@ namespace microgbt {
         }
 
         Vector gradients(const Vector &predictions, const Vector &labels) const override {
-            Vector gradients;
-            std::transform(labels.begin(), labels.end(),
-                           predictions.begin(), std::back_inserter(gradients), std::minus<double>());
+            unsigned long sz = predictions.size();
+            Vector gradients(sz);
+
+            #pragma omp parallel for schedule(static)
+            for (unsigned long i = 0 ; i < sz; i++){
+                gradients[i] = labels[i] - predictions[i];
+            }
 
             return gradients;
         }
 
         Vector hessian(const Vector &predictions) const override {
-            Vector hessians;
+            unsigned long sz = predictions.size();
+            Vector hessians(sz);
 
-            std::transform(predictions.begin(), predictions.end(),
-                           std::back_inserter(hessians),
-                           []( double prediction) {
-                return abs(logit(prediction)) * ( 1- abs(prediction));
-            });
+            #pragma omp parallel for schedule(static)
+            for (unsigned long i = 0 ; i < sz; i++){
+                hessians[i] = abs(logit(predictions[i])) * ( 1- abs(predictions[i]));
+            }
 
             return hessians;
         }
 
         double lossAt(const Vector &scores, const Vector &y) const override {
+            size_t n = scores.size();
             double loss = 0.0;
 
-            size_t n = scores.size();
-            for (size_t i = 0; i< n; i ++){
+            #pragma omp parallel for shared(y, scores) reduction(+: loss)
+            for (size_t i = 0; i < n; i ++){
                 loss += y[i] * log(clip(scores[i])) + (1 - y[i]) * log(1 - clip(scores[i]));
             }
 

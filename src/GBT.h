@@ -2,6 +2,7 @@
 #include <vector>
 #include<iostream>
 #include <memory>
+#include <omp.h>
 #include "dataset.h"
 #include "trees/tree.h"
 #include "metrics/metric.h"
@@ -72,10 +73,6 @@ namespace microgbt {
             return _lambda;
         }
 
-        inline double gamma() const {
-            return _gamma;
-        }
-
         inline double minSplitGain() const {
             return _minSplitGain;
         }
@@ -113,6 +110,9 @@ namespace microgbt {
 
 
         void train(Dataset &trainSet, Dataset &validSet, int numBoostRound, int earlyStoppingRounds) {
+
+            // Allow nested threading in OpenMP
+            omp_set_nested(1);
 
             std::vector<Tree> trees;
             long bestIteration = 0;
@@ -202,21 +202,25 @@ namespace microgbt {
             return score;
         }
 
-        double predictFromTrees(const Eigen::RowVectorXd &x, const std::vector<Tree> &trees) {
-            double score = std::accumulate(trees.begin(), trees.end(), 0.0, [&x](double acc,
-                    const Tree& tree){
-                return acc + tree.score(x);
-            });
+        double predictFromTrees(const Eigen::RowVectorXd &x, const std::vector<Tree> &trees) const {
+            size_t n = trees.size();
+            double score = 0.0;
+            #pragma omp parallel for default(none) shared(n, x, trees) reduction(+: score)
+            for (size_t i = 0; i < n; i ++){
+                score += trees[i].score(x);
+            }
             return _metric->scoreToPrediction(score);
         }
 
-        Vector predictDatasetFromTrees(const Dataset &trainSet, std::vector<Tree> &trees) {
-            Vector scores(trainSet.nRows(), 0.0);
-            for (size_t i = 0; i < trainSet.nRows(); i++) {
+        Vector predictDatasetFromTrees(const Dataset &trainSet, const std::vector<Tree> &trees) const {
+            size_t numSamples = trainSet.nRows();
+            Vector scores(numSamples);
+            #pragma omp parallel for schedule(static)
+            for (size_t i = 0; i < numSamples; i++) {
                 scores[i] = predictFromTrees(trainSet.row(i), trees);
             }
 
             return scores;
         }
     };
-}
+} // namespace microgbt
