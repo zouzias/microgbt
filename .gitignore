@@ -1,3 +1,7 @@
+examples/*.log
+examples/*.so
+build/
+pybind11/
 CMakeCache.txt
 CMakeFiles
 CMakeScripts
