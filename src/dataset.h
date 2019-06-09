@@ -56,12 +56,11 @@ namespace microgbt {
             _y = Vector(dataset.y());
             _X = Eigen::MatrixXd(rowSize, colSize);
 
-            int i = 0;
-            for (auto idx: rowIndices) {
+            #pragma omp parallel for schedule(static)
+            for (size_t i = 0; i < rowIndices.size(); i++) {
                 for (int j = 0 ; j < colSize; j++) {
-                    _X(i, j) = dataset.X()(idx, j);
+                    _X(i, j) = dataset.X()(rowIndices[i], j);
                 }
-                i++;
             }
         }
 
