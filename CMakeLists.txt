@@ -1,6 +1,8 @@
-cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
-project(microgbt CXX)
+PROJECT(microgbt CXX)
+
+OPTION(USE_OPENMP "Enable OpenMP" ON)
 
 # project version
 set(VERSION_MAJOR 0)
@@ -11,9 +13,23 @@ set(VERSION_PATCH 0)
 # enable c++ language
 enable_language(CXX)
 set(CMAKE_CXX_STANDARD 11)
+SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Look for eigen 3.3
-find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+FIND_PACKAGE (Eigen3 3.3 REQUIRED NO_MODULE)
+
+
+
+# Based on https://iscinumpy.gitlab.io/post/omp-on-high-sierra/
+if(USE_OPENMP)
+    FIND_PACKAGE(OpenMP REQUIRED)
+else()
+    # Ignore unknown #pragma warning
+    if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+            OR (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"))
+        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas")
+    endif()
+endif(USE_OPENMP)
 
 # place binaries and libraries according to GNU standards
 include(GNUInstallDirs)
@@ -27,7 +43,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
 endif()
 
 if(UNIX OR MINGW OR CYGWIN)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread -O3 -Wextra -Wall -Wno-ignored-attributes -Wno-unknown-pragmas -Wno-return-type")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread -O0 -Wextra -Wall -Wno-ignored-attributes -Wno-unknown-pragmas -Wno-return-type")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops")
 endif()
@@ -65,6 +81,17 @@ include_directories( ${EIGEN3_INCLUDE_DIRS} )
 # For Python integration
 add_subdirectory(pybind11)
 
-pybind11_add_module(gbtpy src/metrics/metric.h src/trees/tree.h src/GBT.h src/dataset.h src/metrics/logloss.h src/trees/treenode.h src/trees/split_info.h
+pybind11_add_module(gbtpy src/metrics/metric.h src/trees/tree.h src/GBT.h src/dataset.h src/metrics/logloss.h
+        src/trees/treenode.h src/trees/split_info.h
+        src/utils.h
         src/python_api.cpp)
+#########################
+
+
+#########################
+# Link openMP
+#########################
+if(USE_OPENMP)
+    target_link_libraries(gbtpy PRIVATE OpenMP::OpenMP_CXX)
+endif(USE_OPENMP)
 #########################

@@ -1,5 +1,6 @@
 examples/*.log
 examples/*.so
+cmake-build-debug/
 build/
 cmake-build-debug/
 pybind11/

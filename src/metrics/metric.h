@@ -8,9 +8,9 @@ namespace microgbt {
     using Vector = std::vector<double>;
 
     /**
-     * A generic metric is defined by:
-     * 1) gradient method: How gradient is computed based on current prediction vector and target vector.
-     * 2) hessian method: How Hessian is computed based on current prediction vector.
+     * A generic metric that is defined by:
+     * * How gradient is computed based on current prediction vector and target vector.
+     * * How Hessian is computed based on current prediction vector and target vector.
      * * Loss evaluation based on current prediction vector and target vector.
      *
      */
@@ -21,7 +21,7 @@ namespace microgbt {
         virtual ~Metric() = default;
 
         /**
-         * Return the gradient of the metric at given predictions vector
+         * Compute the gradient at given predictions vector
          *
          * @param predictions
          * @param labels
@@ -30,16 +30,16 @@ namespace microgbt {
         virtual Vector gradients(const Vector &scores, const Vector &labels) const = 0;
 
         /**
-         * Return the Hessian vector of the metric at given predictions vector
+         * Return the Hessian vector at given predictions vector
          *
          * @param predictions
          * @param labels
          * @return
          */
-        virtual Vector hessian(const Vector &predictions) const = 0;
+        virtual Vector hessian(const Vector &scores) const = 0;
 
         /**
-         * Evaluates the loss function at given prediction and target vector.
+         * Compute the loss at given predictions.
          *
          * @param predictions
          * @param labels
@@ -48,11 +48,11 @@ namespace microgbt {
         virtual double lossAt(const Vector &scores, const Vector &labels) const = 0;
 
         /**
-         * Transformation used to convert Gradient Boosting Trees scores to prediction (classification or regression)
+         * Transformation required from Gradient Boosting Trees scores to final prediction
          *
-         * @param score Sum of scores over all Gradient Boosting Trees
-         * @return GBT prediction
+         * @param score Sum of scores over all trees (of GBT)
+         * @return
          */
         virtual double scoreToPrediction(double score) const = 0;
     };
-}
+} // namespace microgbt
