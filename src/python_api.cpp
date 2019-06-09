@@ -22,7 +22,9 @@ gbt.def(py::init<std::map<std::string, double> >())
         .def("best_iteration", &microgbt::GBT::getBestIteration);
 
 // Train API
-gbt.def("train", &microgbt::GBT::trainPython, "Python API for microgbtpy training",
+gbt.def("train", &microgbt::GBT::trainPython,
+        "Python API for microGBT training",
+        py::call_guard<py::gil_scoped_release>(),
             pybind11::arg("train_X"), pybind11::arg("train_y"),
             pybind11::arg("valid_x"), pybind11::arg("valid_y"),
             pybind11::arg("num_iterations"), pybind11::arg("early_stopping_rounds") = 5);
@@ -46,12 +48,8 @@ gbt.def("__repr__",
                      repr += std::to_string(a.minSplitGain());
                      repr += ",lambda:";
                      repr += std::to_string(a.lambda());
-                     repr += ",gamma:";
-                     repr += std::to_string(a.gamma());
                      repr += "]";
                      return repr;
                  }
             );
-}
-
-
+} // PYBIND11_MODULE

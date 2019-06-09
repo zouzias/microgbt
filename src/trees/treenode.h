@@ -7,9 +7,11 @@
 #include<numeric>
 #include<iterator>
 #include<iostream>
+#include <thread>
 
 #include "../dataset.h"
 #include "split_info.h"
+#include "../utils.h"
 
 
 namespace microgbt {
@@ -22,15 +24,15 @@ namespace microgbt {
         int _maxDepth;
         double _lambda, _minSplitGain, _minTreeSize;
         bool isLeaf = false;
-        std::unique_ptr<TreeNode> _leftSubTree;
-        std::unique_ptr<TreeNode> _rightSubTree;
-        long _splitFeatureIndex;
+        std::unique_ptr<TreeNode> leftSubTree;
+        std::unique_ptr<TreeNode> rightSubTree;
+        long splitFeatureIndex;
 
         /**
          * Numeric value on which a binary tree split took place
          */
-        double _splitNumericValue;
-        double _weight = 0.0;
+        double splitNumericValue;
+        double weight = 0.0;
 
         /**
         * Sort the sample indices for a given feature index 'feature_id'.
@@ -51,8 +53,6 @@ namespace microgbt {
     public:
 
         TreeNode(double lambda, double minSplitGain, double minTreeSize, int maxDepth){
-            _splitNumericValue = 0.0;
-            _splitFeatureIndex = -1;
             _lambda = lambda;
             _minSplitGain = minSplitGain;
             _maxDepth = maxDepth;
@@ -85,8 +85,10 @@ namespace microgbt {
          * @param lambd Regularization xgboost parameter, see Eqn. 7 in [1]
          * @return
          */
-        inline double calc_split_gain(double G, double H, double G_l, double H_l, double G_r, double H_r) const {
-            return objective(G_l, H_l) + objective(G_r, H_r) - objective(G, H) / 2.0; // TODO: minus gamma ?
+        inline double calc_split_gain(double G, double H, double G_l, double H_l) const {
+            double G_r = G - G_l;
+            double H_r = H - H_l;
+            return objective(G_l, H_l) + objective(G_r, H_r) - objective(G, H) / 2.0; // TODO: minus \gamma
         }
 
         /**
@@ -102,17 +104,18 @@ namespace microgbt {
           */
         inline double calc_leaf_weight(const Vector &gradient,
                                        const Vector &hessian) const {
-            return accumulate(gradient.begin(), gradient.end(), 0.0)
-                   / (accumulate(hessian.begin(), hessian.end(), 0.0) + _lambda);
+            return par_simd_accumulate(gradient)
+                   / (par_simd_accumulate(hessian) + _lambda);
         }
 
         /**
          * Returns an optimal binary split for a given feature index of a Dataset.
          *
-         * @param trainSet Training dataset
-         * @param gradient Gradient vector
-         * @param hessian Hessian vector
-         * @param featureId Feature index
+         * @param trainSet
+         * @param previousPreds
+         * @param gradient
+         * @param hessian
+         * @param featureId
          * @return
          */
         SplitInfo optimumGainByFeature(const Dataset &trainSet,
@@ -120,47 +123,37 @@ namespace microgbt {
                                   const Vector &hessian,
                                   int featureId) const {
 
-            double G = accumulate(gradient.begin(), gradient.end(), 0.0);
-            double H = accumulate(hessian.begin(), hessian.end(), 0.0);
-
-            double G_l = 0.0, H_l = 0.0, bestGain = std::numeric_limits<double>::min(), bestSplitNumericValue = 0;
-            size_t bestSortedIndex = 0;
+            double G = par_simd_accumulate(gradient);
+            double H = par_simd_accumulate(hessian);
 
             // Sort the feature by value and return permutation of indices (i.e., argsort)
             Eigen::RowVectorXi sortedInstanceIds = sortSamplesByFeature(trainSet, featureId);
 
-            // For each feature, compute split gain and keep the split index with maximum gain
-            for (size_t i = 0 ; i < trainSet.nRows(); i++){
-                G_l += gradient[sortedInstanceIds[i]];
-                H_l += hessian[sortedInstanceIds[i]];
-                double G_r = G - G_l;
-                double H_r = H - H_l;
-                double currentGain = calc_split_gain(G, H, G_l, H_l, G_r, H_r);
-
-                if ( currentGain > bestGain) {
-                    bestGain = currentGain;
-                    bestSplitNumericValue = trainSet.row(sortedInstanceIds[i])(featureId);
-                    bestSortedIndex = i + 1;
-                }
-            }
-
-            // Indices vectors required for split information
-            VectorT output(trainSet.nRows());
+            // Cummulative sum of gradients and Hessian
+            Vector cum_sum_G(trainSet.nRows());
+            Vector cum_sum_H(trainSet.nRows());
+            double cum_sum_g = 0.0, cum_sum_h = 0.0;
             for (size_t i = 0 ; i < trainSet.nRows(); i++) {
-                output[i] = trainSet.rowIter()[sortedInstanceIds[i]];
+                cum_sum_g += gradient[sortedInstanceIds[i]];
+                cum_sum_h += hessian[sortedInstanceIds[i]];
+                cum_sum_G[i] = cum_sum_g;
+                cum_sum_H[i] = cum_sum_h;
             }
-            VectorT bestLeftInstances(output.data(), output.data() + bestSortedIndex);
-            VectorT bestLocalLeft(sortedInstanceIds.data(), sortedInstanceIds.data() + bestSortedIndex);
-            VectorT bestRightInstances(output.data() + bestSortedIndex, output.data() + output.size());
-            VectorT bestLocalRight(sortedInstanceIds.data() + bestSortedIndex, sortedInstanceIds.data() + sortedInstanceIds.size());
 
-            return SplitInfo(bestGain,
-                    bestSplitNumericValue,
-                    bestLeftInstances,
-                    bestRightInstances,
-                    bestLocalLeft,
-                    bestLocalRight
-            );
+            // For each feature, compute split gain and keep the split index with maximum gain
+            Vector gainPerOrderedSampleIndex(trainSet.nRows());
+            for (size_t i = 0 ; i < trainSet.nRows(); i++){
+                gainPerOrderedSampleIndex[i] = calc_split_gain(G, H, cum_sum_G[i], cum_sum_H[i]);
+            }
+
+            long bestGainIndex =
+                    std::max_element(gainPerOrderedSampleIndex.begin(), gainPerOrderedSampleIndex.end())
+                    - gainPerOrderedSampleIndex.begin();
+            double bestGain = gainPerOrderedSampleIndex[bestGainIndex];
+            double bestSplitNumericValue = trainSet.row(sortedInstanceIds[bestGainIndex])[featureId];
+            size_t bestSortedIndex = bestGainIndex + 1;
+
+            return SplitInfo(sortedInstanceIds, bestGain, bestSplitNumericValue, bestSortedIndex);
         }
 
 
@@ -190,60 +183,75 @@ namespace microgbt {
                    double shrinkage,
                    int depth) {
 
+            size_t numFeatures = trainSet.numFeatures();
+
             // Check if depth is reached
             if (depth > _maxDepth) {
                 this->isLeaf = true;
-                this->_weight = this->calc_leaf_weight(gradient, hessian) * shrinkage;
+                this->weight = this->calc_leaf_weight(gradient, hessian) * shrinkage;
                 return;
             }
 
             // Check if # of sample is too small
             if ( trainSet.nRows() <= _minTreeSize) {
                 this->isLeaf = true;
-                this->_weight = this->calc_leaf_weight(gradient, hessian) * shrinkage;
+                this->weight = this->calc_leaf_weight(gradient, hessian) * shrinkage;
                 return;
             }
 
             // 1) For each tree node, enumerate over all features:
             // 2) For each feature, sorted the instances by feature numeric value
             //    - Compute gain for every feature (column of design matrix)
-            std::vector<SplitInfo> splitInfoPerFeature(trainSet.numFeatures());
-            for (size_t featureId = 0; featureId < trainSet.numFeatures(); featureId++) {
-                splitInfoPerFeature[featureId] = optimumGainByFeature(trainSet, gradient, hessian, featureId);
+            std::vector<SplitInfo> gainPerFeature(numFeatures);
+            #pragma omp parallel for schedule(static)
+            for (size_t featureId = 0; featureId < numFeatures; featureId++) {
+                gainPerFeature[featureId] = optimumGainByFeature(trainSet, gradient, hessian, featureId);
             }
 
-            // 3) Use a linear scan to decide the best split along that feature (if categorical perform Mean Target Encoding)
+            // 3) Use a linear scan to decide the best split along that feature
             // 4) Take the best split solution (that maximises gain reduction) over all features
             long bestFeatureId =
-                    std::max_element(splitInfoPerFeature.begin(), splitInfoPerFeature.end()) - splitInfoPerFeature.begin();
-            SplitInfo bestGain = splitInfoPerFeature[bestFeatureId];
+                    std::max_element(gainPerFeature.begin(), gainPerFeature.end()) - gainPerFeature.begin();
+            SplitInfo bestGain = gainPerFeature[bestFeatureId];
 
             // Check if best gain is less than minimum split gain (threshold)
             if (bestGain.bestGain() < this->_minSplitGain) {
                 this->isLeaf = true;
-                this->_weight = this->calc_leaf_weight(gradient, hessian) * shrinkage;
+                this->weight = this->calc_leaf_weight(gradient, hessian) * shrinkage;
                 return;
             }
 
-            this->_splitFeatureIndex = bestFeatureId;
-            this->_splitNumericValue = bestGain.splitValue();
+            this->splitFeatureIndex = bestFeatureId;
+            this->splitNumericValue = bestGain.splitValue();
+
+            #pragma omp parallel sections
+            {
+                // Recurse on the left subtree
+                #pragma omp section
+                {
+                    Dataset leftDataset(trainSet, bestGain, SplitInfo::Side::Left);
+                    Vector leftGradient = bestGain.split(gradient, SplitInfo::Side::Left);
+                    Vector leftHessian = bestGain.split(hessian, SplitInfo::Side::Left);
+                    Vector leftPreviousPreds = bestGain.split(previousPreds, SplitInfo::Side::Left);
+                    this->leftSubTree = std::unique_ptr<TreeNode>(
+                            new TreeNode(_lambda, _minSplitGain, _minTreeSize, _maxDepth));
+                    leftSubTree->build(leftDataset, leftPreviousPreds, leftGradient, leftHessian, shrinkage, depth + 1);
+                }
 
 
-            // Recurse on the left subtree
-            this->_leftSubTree = std::unique_ptr<TreeNode>(new TreeNode(_lambda, _minSplitGain, _minTreeSize, _maxDepth));
-            Dataset leftDataset(trainSet, bestGain, SplitInfo::Side::Left);
-            Vector leftGradient = bestGain.split(gradient, SplitInfo::Side::Left);
-            Vector leftHessian = bestGain.split(hessian, SplitInfo::Side::Left);
-            Vector leftPreviousPreds = bestGain.split(previousPreds, SplitInfo::Side::Left);
-            _leftSubTree->build(leftDataset, leftPreviousPreds, leftGradient, leftHessian, shrinkage, depth + 1);
+                // Recurse on the right subtree
+                #pragma omp section
+                {
+                    Dataset rightDataset(trainSet, bestGain, SplitInfo::Side::Right);
+                    Vector rightGradient = bestGain.split(gradient, SplitInfo::Side::Right);
+                    Vector rightHessian = bestGain.split(hessian, SplitInfo::Side::Right);
+                    Vector rightPreviousPreds = bestGain.split(previousPreds, SplitInfo::Side::Right);
 
-            // Recurse on the right subtree
-            this->_rightSubTree = std::unique_ptr<TreeNode>(new TreeNode(_lambda, _minSplitGain, _minTreeSize, _maxDepth));
-            Dataset rightDataset(trainSet, bestGain, SplitInfo::Side::Right);
-            Vector rightGradient = bestGain.split(gradient, SplitInfo::Side::Right);
-            Vector rightHessian = bestGain.split(hessian, SplitInfo::Side::Right);
-            Vector rightPreviousPreds = bestGain.split(previousPreds, SplitInfo::Side::Right);
-            _rightSubTree->build(rightDataset, rightPreviousPreds, rightGradient, rightHessian, shrinkage, depth + 1);
+                    this->rightSubTree = std::unique_ptr<TreeNode>(
+                            new TreeNode(_lambda, _minSplitGain, _minTreeSize, _maxDepth));
+                    rightSubTree->build(rightDataset, rightPreviousPreds, rightGradient, rightHessian, shrinkage, depth + 1);
+                }
+            }
         }
 
         /**
@@ -254,12 +262,12 @@ namespace microgbt {
          */
         double score(const Eigen::RowVectorXd &sample) const {
             if (this->isLeaf) {
-                return this->_weight;
-            } else if (sample[this->_splitFeatureIndex] < this->_splitNumericValue) {
-                return this->_leftSubTree->score(sample);
+                return this->weight;
+            } else if (sample[this->splitFeatureIndex] < this->splitNumericValue) {
+                return this->leftSubTree->score(sample);
             } else {
-                return this->_rightSubTree->score(sample);
+                return this->rightSubTree->score(sample);
             }
         }
     };
-}
+} // namespace microgbt
