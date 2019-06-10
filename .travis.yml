@@ -1,0 +1,33 @@
+sudo: true
+dist: xenial
+language: cpp
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    update: true
+    packages:
+      - gcc
+      - g++
+      - cmake
+      - libeigen3-dev
+      - git
+      - wget
+      - python-dev
+
+before_install:
+  - pip install --user cpp-coveralls
+
+script:
+  - mkdir build
+  - cd build
+  - cmake ..
+  - cmake --build .
+  - ctest
+
+after_success:
+  - coveralls --root .. -E ".*external.*" -E ".*CMakeFiles.*" -E ".*test/.*.cpp.*"
+
+notifications:
+  email: false
