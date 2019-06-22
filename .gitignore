@@ -1,6 +1,7 @@
 examples/*.log
 examples/*.so
 build/
+cmake-build-debug/
 pybind11/
 CMakeCache.txt
 CMakeFiles

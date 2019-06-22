@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "trees/split_info.h"
 
-TEST(microgbt, Gain)
+TEST(microgbt, SplitInfo)
 {
     microgbt::SplitInfo splitInfo(0.0, 1.0);
     ASSERT_NEAR(splitInfo.bestGain(), 0.0, 1.0e-11);
