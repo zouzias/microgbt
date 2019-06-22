@@ -214,7 +214,7 @@ namespace microgbt {
 
         Vector predictDatasetFromTrees(const Dataset &trainSet, std::vector<Tree> &trees) {
             Vector scores(trainSet.nRows(), 0.0);
-            for (int i = 0; i < trainSet.nRows(); i++) {
+            for (size_t i = 0; i < trainSet.nRows(); i++) {
                 scores[i] = predictFromTrees(trainSet.row(i), trees);
             }
 

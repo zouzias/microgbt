@@ -65,11 +65,11 @@ namespace microgbt {
             }
         }
 
-        inline long nRows() const {
+        inline size_t nRows() const {
             return this->_X.rows();
         }
 
-        inline long numFeatures() const {
+        inline size_t numFeatures() const {
             return this->_X.cols();
         }
 

@@ -155,7 +155,7 @@ namespace microgbt {
             std::vector<size_t> sortedInstanceIds = sortSamplesByFeature(trainSet, featureId);
 
             // For each feature, compute split gain and keep the split index with maximum gain
-            for (long i = 0 ; i < trainSet.nRows(); i++){
+            for (size_t i = 0 ; i < trainSet.nRows(); i++){
                 G_l += gradient[sortedInstanceIds[i]];
                 H_l += hessian[sortedInstanceIds[i]];
                 double G_r = G - G_l;
@@ -221,7 +221,7 @@ namespace microgbt {
             // 2) For each feature, sorted the instances by feature numeric value
             //    - Compute gain for every feature (column of design matrix)
             std::vector<SplitInfo> splitInfoPerFeature(trainSet.numFeatures());
-            for (long featureId = 0; featureId < trainSet.numFeatures(); featureId++) {
+            for (size_t featureId = 0; featureId < trainSet.numFeatures(); featureId++) {
                 splitInfoPerFeature[featureId] = optimumGainByFeature(trainSet, gradient, hessian, featureId);
             }
 
