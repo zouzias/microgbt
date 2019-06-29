@@ -12,7 +12,10 @@ fi
 rm -rf bin/
 rm -rf build/
 mkdir build/
-cd build && cmake .. && make
+pushd build
+cmake ..
+make
+popd
 
 # Copy .so library to examples for Python testing
-cp build/lib/*.so examples/
+cp build/lib/*.so ./examples/
