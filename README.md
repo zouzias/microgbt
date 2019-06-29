@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/zouzias/microgbt.svg?branch=master)](https://travis-ci.org/zouzias/microgbt/builds)
-[![Coverage Status](https://coveralls.io/repos/zouzias/microgbt/badge.png?branch=master)](https://coveralls.io/r/zouzias/microgbt?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/zouzias/microgbt/badge.svg?branch=master)](https://coveralls.io/github/zouzias/microgbt?branch=master)
 [![License](https://img.shields.io/badge/license-Apache-blue.svg)](LICENSE)
 
 
