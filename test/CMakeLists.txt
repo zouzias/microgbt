@@ -6,6 +6,7 @@ add_executable(
         test_dataset.cpp
         test_treenode.cpp
         test_tree.cpp
+        test_gbt.cpp
     ../src/metrics/metric.h ../src/trees/tree.h ../src/GBT.h ../src/dataset.h ../src/metrics/rmse.h)
 
 target_link_libraries(
