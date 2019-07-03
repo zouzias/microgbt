@@ -4,7 +4,7 @@
 
 # Clone pybind11 repository as GIT submodule
 if [[ ! -d pybind11 ]]; then	
-  git submodule add ttps://github.com/pybind/pybind11.git
+  git submodule add https://github.com/pybind/pybind11.git
   git submodule update --init --recursive
 fi
 
