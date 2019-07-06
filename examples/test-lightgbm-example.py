@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import gbtpy
+import microgbtpy
 import pandas as pd
 from math import sqrt
 import logging.config
@@ -58,7 +58,7 @@ params = {
 }
 
 # Define the GBT
-gbt = gbtpy.GBT(params)
+gbt = microgbtpy.GBT(params)
 print(gbt)
 
 # Training related parameters

@@ -7,7 +7,7 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(gbtpy, m)
+PYBIND11_MODULE(microgbtpy, m)
 {
 m.doc() = "microGBT Python API";
 
@@ -22,7 +22,7 @@ gbt.def(py::init<std::map<std::string, double> >())
         .def("best_iteration", &microgbt::GBT::getBestIteration);
 
 // Train API
-gbt.def("train", &microgbt::GBT::trainPython, "Python API for microGBT training",
+gbt.def("train", &microgbt::GBT::trainPython, "Python API for microgbtpy training",
             pybind11::arg("train_X"), pybind11::arg("train_y"),
             pybind11::arg("valid_x"), pybind11::arg("valid_y"),
             pybind11::arg("num_iterations"), pybind11::arg("early_stopping_rounds") = 5);
@@ -35,7 +35,7 @@ gbt.def("predict", &microgbt::GBT::predict, "Python API to get predictions using
 gbt.def("__repr__",
                  [](const microgbt::GBT &a) {
                      std::string repr;
-                     repr += "<gbtpy.GBT>[";
+                     repr += "<microgbt>[";
                      repr += "learningRate:";
                      repr += std::to_string(a.getLearningRate());
                      repr += ",maxDepth:";

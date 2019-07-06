@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
-import gbtpy
+#!/usr/bin/env python
+import microgbtpy
 from math import sqrt
 import logging.config
 from sklearn.metrics import mean_squared_error, r2_score
@@ -57,7 +57,7 @@ params = {
     "metric": 1.0
 }
 
-gbt = gbtpy.GBT(params)
+gbt = microgbtpy.GBT(params)
 print(gbt)
 
 num_iters = 100

@@ -5,5 +5,10 @@
 pushd build
 make
 # Copy .so library to examples for Python testing
-cp lib/*.so ../examples/
+cp lib/*.so ../python-package/
+popd
+
+pushd ./python-package/
+pip install sklearn pandas
+pip install -U .
 popd
