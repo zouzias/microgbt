@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import gbtpy
+import microgbtpy
 import logging.config
 import numpy as np
 import pandas as pd
@@ -75,7 +75,7 @@ params = {
     "metric": 0.0
 }
 
-gbt = gbtpy.GBT(params)
+gbt = microgbtpy.GBT(params)
 
 print(gbt)
 

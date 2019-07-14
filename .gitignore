@@ -1,3 +1,6 @@
+.idea/
+venv/
+
 examples/*.log
 examples/*.so
 build/

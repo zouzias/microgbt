@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
-import gbtpy
+#!/usr/bin/env python
+import microgbtpy
 import logging.config
 import numpy as np
 import pandas as pd
@@ -80,7 +80,7 @@ params = {
 }
 
 # Define the GBT
-gbt = gbtpy.GBT(params)
+gbt = microgbtpy.GBT(params)
 print(gbt)
 
 
