@@ -2,7 +2,7 @@
 venv/
 
 examples/*.log
-examples/*.so
+**/*.so
 build/
 cmake-build-debug/
 pybind11/
