@@ -4,6 +4,8 @@ venv/
 examples/*.log
 **/*.so
 build/
+python-package/dist/
+python-package/microgbtpy.egg-info/
 cmake-build-debug/
 pybind11/
 CMakeCache.txt
