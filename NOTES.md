@@ -1,4 +1,12 @@
 
+## Python wheels packaging
+
+```bash
+python setup.py bdist_wheel
+ls dist/
+microgbtpy-0.0.1-cp36-cp36m-macosx_10_13_x86_64.whl
+```
+
 ## To count lines of code 
 
 Type, (`brew install cloc` to install cloc)

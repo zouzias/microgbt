@@ -30,7 +30,7 @@ def binclass_metrics(gbt, X, y_true, label, show_report = False):
 def load_flight_delay():
     logger.info("Loading flights data...")
     dataset = "flight"
-    URL = "data/flight_delay.csv.gz"
+    URL = "../data/flight_delay.csv.gz"
     logger.debug("Using dataset {} from {}".format(dataset, URL))
     features = pd.read_csv(URL)
 
@@ -74,9 +74,10 @@ params = {
     "max_depth": 4.0,
     "shrinkage_rate": 1.0,
     "min_split_gain": 0.1,
-    "learning_rate": 0.1,
     "min_tree_size": 3,
-    "num_boosting_rounds": 100.0
+    "learning_rate": 0.1,
+    "num_boosting_rounds": 100.0,
+    "metric": 0
 }
 
 # Define the GBT

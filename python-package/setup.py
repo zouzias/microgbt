@@ -1,10 +1,21 @@
-from setuptools import setup
+from setuptools import setup, Extension
+from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
+
 
 __version__ = "0.0.1"
 
+# Based on https://stackoverflow.com/questions/45150304/how-to-force-a-python-wheel-to-be-platform-specific-when-building-it
+class BdistWheel(_bdist_wheel):
+    def finalize_options(self):
+        _bdist_wheel.finalize_options(self)
+        self.root_is_pure = False
+
+
 setup(
     name="microgbtpy",
+    version=__version__,
     author="Anastasios Zouzias",
+    url="https://github.com/zouzias/microgbt",
     description="microgbt is a minimalistic Gradient Boosting Trees implementation",
     license="Apache 2.0 license",
     classifiers=[
@@ -15,12 +26,11 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
     ],
+    cmdclass={'bdist_wheel': BdistWheel},
     include_package_data=True,
     keywords="gradient boosting trees",
-    url="https://github.com/zouzias/microgbt",
     zip_safe=False,
-    version=__version__,  # specified elsewhere
     packages=[""],
     package_dir={"": "."},
-    package_data={"": ["microgbtpy.cpython-*-darwin.so"]},
+    package_data={"": ["microgbtpy.cpython-*.so"]},
 )

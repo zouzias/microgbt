@@ -2,11 +2,14 @@
 #include <vector>
 #include<iostream>
 #include <Eigen/Dense>
+#include <numeric>
 #include "trees/split_info.h"
 
 namespace microgbt {
 
     using Vector = std::vector<double>;
+    using MatrixType = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
+    using SortedMatrixType = Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 
     /**
     * Represents a machine learning "design matrix" and target vector, (X, y)
@@ -19,17 +22,51 @@ namespace microgbt {
         /**
          * Design matrix, each row correspond to a sample; each column corresponds to a feature
          */
-        Eigen::MatrixXd _X;
+        MatrixType _X;
+
+
+        /**
+         * Matrix whose columns contain the
+         */
+        SortedMatrixType _sortedColumnValues;
 
         /**
          * Target vector
          */
         Vector _y;
+
+        /**
+         * Return sorted indices from an Eigen vector
+         * @param v
+         * @return
+         */
+         Eigen::VectorXi sortIndices(int colIndex) const{
+
+            // initialize original index locations
+            Eigen::VectorXd v = _X.col(colIndex);
+            unsigned int n = v.size();
+
+            Eigen::VectorXi idx(n);
+            // idx contains now 0,1,...,v.size() - 1
+            std::iota(idx.data(), idx.data() + idx.size(), 0);
+
+            // sort indexes based on comparing values in v
+            std::sort(idx.data(), idx.data() + idx.size(),
+                 [&v](int i1, int i2) {return v[i1] < v[i2];});
+
+            return idx;
+        }
+
     public:
 
         Dataset() = default;
 
-        Dataset(const Eigen::MatrixXd& X, const Vector& y): _X(X), _y(y) {
+        Dataset(const MatrixType &X, Vector &y) : _X(X), _sortedColumnValues(X.rows(), X.cols()), _y(y) {
+
+            // Compute sorted indices per column
+            for (int j = 0; j < X.cols(); j++) {
+                _sortedColumnValues.col(j) = sortIndices(j);
+            }
         }
 
 
@@ -41,26 +78,28 @@ namespace microgbt {
          * @param bestGain
          * @param side
          */
-        Dataset(Dataset const &dataset, const SplitInfo& bestGain, SplitInfo::Side side) {
+        Dataset(Dataset const &dataset, const SplitInfo &bestGain, SplitInfo::Side side): _y(dataset.y()) {
 
             std::vector<size_t> rowIndices;
             if (side == SplitInfo::Side::Left) {
                 rowIndices = bestGain.getLeftIds();
-            }
-            else {
+            } else {
                 rowIndices = bestGain.getRightIds();
             }
 
             int rowSize = rowIndices.size(), colSize = dataset.numFeatures();
 
-            _y = Vector(dataset.y());
-            _X = Eigen::MatrixXd(rowSize, colSize);
+            _X = MatrixType(rowSize, colSize);
+            _sortedColumnValues = SortedMatrixType(rowSize, _X.cols());
 
-            #pragma omp parallel for schedule(static)
             for (size_t i = 0; i < rowIndices.size(); i++) {
-                for (int j = 0 ; j < colSize; j++) {
-                    _X(i, j) = dataset.X()(rowIndices[i], j);
-                }
+                _X.row(i) = dataset.row(rowIndices[i]);
+            }
+
+            // Compute sorted indices per column
+            #pragma omp parallel for schedule(static)
+            for (int j = 0; j < colSize; j++) {
+                _sortedColumnValues.col(j) = sortIndices(j);
             }
         }
 
@@ -72,20 +111,21 @@ namespace microgbt {
             return this->_X.cols();
         }
 
-        Vector y() const {
+        inline Vector y() const {
             return _y;
         }
 
-        Eigen::MatrixXd X() const {
-            return _X;
-        }
-
-        Eigen::RowVectorXd row(long rowIndex) const {
+        inline Eigen::RowVectorXd row(long rowIndex) const {
             return _X.row(rowIndex);
         }
 
-        Eigen::RowVectorXd col(long colIndex) const {
-            return _X.col(colIndex);
+        /**
+         * Returns a sorted vector of indices corresponding to a column
+         * @param colIndex Index of column
+         * @return
+         */
+        inline Eigen::RowVectorXi sortedColumnIndices(long colIndex) const {
+            return _sortedColumnValues.col(colIndex);
         }
     };
 }

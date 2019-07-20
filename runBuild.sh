@@ -12,17 +12,8 @@ fi
 rm -rf bin/
 rm -rf build/
 mkdir build/
-pushd build
+pushd build || exit
 cmake ..
-make
-popd
+popd || exit
 
-# Copy .so library to python-package
-cp build/lib/*.so ./python-package/
-
-
-# Install microgbtpy as a Python package
-pushd ./python-package/
-pip install sklearn pandas
-pip install -U .
-popd
+./runMake.sh
