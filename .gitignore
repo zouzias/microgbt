@@ -2,6 +2,7 @@
 venv/
 
 examples/*.log
+data/flight_delay.csv.gz
 **/*.so
 build/
 python-package/dist/
