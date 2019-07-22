@@ -122,10 +122,6 @@ namespace microgbt {
             return _y;
         }
 
-        Eigen::MatrixXd X() const {
-            return _X;
-        }
-
         Eigen::RowVectorXd row(long rowIndex) const {
             return _X.row(rowIndex);
         }
