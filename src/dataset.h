@@ -97,9 +97,7 @@ namespace microgbt {
 
             int i = 0;
             for (auto idx: rowIndices) {
-                for (int j = 0; j < colSize; j++) {
-                    _X(i, j) = dataset.row(idx)(j);
-                }
+                _X.row(i) = dataset.row(idx);
                 i++;
             }
 
