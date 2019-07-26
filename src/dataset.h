@@ -40,18 +40,18 @@ namespace microgbt {
          * @param v
          * @return
          */
-        inline static std::vector<size_t> sortIndices(const Eigen::RowVectorXd &v) {
+        inline static Eigen::VectorXi sortIndices(const Eigen::VectorXd &v) {
 
             // initialize original index locations
             unsigned int n = v.size();
-            std::vector<size_t> idx(n);
+            Eigen::VectorXi idx(n);
             // idx contains now 0,1,...,v.size() - 1
             for (unsigned int i = 0 ; i < n; i++) {
                 idx[i] = i;
             }
 
             // sort indexes based on comparing values in v
-            sort(idx.begin(), idx.end(),
+            std::sort(idx.data(), idx.data() + idx.size(),
                  [&v](size_t i1, size_t i2) {return v[i1] < v[i2];});
 
             return idx;
@@ -64,9 +64,9 @@ namespace microgbt {
         Dataset(const MatrixType &X, Vector &y) : _X(X), _sortedColumnValues(X.rows(), X.cols()), _y(y) {
 
             // Compute sorted indices per column
-            for (int j = 0; j < X.cols(); j++) {
+            for (long j = 0; j < X.cols(); j++) {
                 auto indices = sortIndices(X.col(j));
-                for (int i = 0; i < X.rows(); i++) {
+                for (long i = 0; i < X.rows(); i++) {
                     _sortedColumnValues(i, j) = indices[i];
                 }
             }
@@ -103,10 +103,7 @@ namespace microgbt {
 
             // Compute sorted indices per column
             for (int j = 0; j < colSize; j++) {
-                auto indices = sortIndices(_X.col(j));
-                for (int k = 0; k < rowSize; k++) {
-                    _sortedColumnValues(k, j) = indices[k];
-                }
+                _sortedColumnValues.col(j) = sortIndices(_X.col(j));
             }
         }
 
