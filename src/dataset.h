@@ -8,6 +8,7 @@
 namespace microgbt {
 
     using Vector = std::vector<double>;
+    using MatrixType = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
     using SortedMatrixType = Eigen::Matrix<size_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 
     /**
@@ -21,7 +22,7 @@ namespace microgbt {
         /**
          * Design matrix, each row correspond to a sample; each column corresponds to a feature
          */
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> _X;
+        MatrixType _X;
 
 
         /**
@@ -57,7 +58,7 @@ namespace microgbt {
 
         Dataset() = default;
 
-        Dataset(const Eigen::MatrixXd &X, const Vector y) : _X(X), _sortedColumnValues(X.rows(), X.cols()), _y(y) {
+        Dataset(const MatrixType &X, Vector &y) : _X(X), _sortedColumnValues(X.rows(), X.cols()), _y(y) {
 
             // Compute sorted indices per column
             for (int j = 0; j < X.cols(); j++) {
@@ -77,7 +78,7 @@ namespace microgbt {
          * @param bestGain
          * @param side
          */
-        Dataset(Dataset const &dataset, const SplitInfo &bestGain, SplitInfo::Side side) {
+        Dataset(Dataset const &dataset, const SplitInfo &bestGain, SplitInfo::Side side): _y(dataset.y()) {
 
             std::vector<size_t> rowIndices;
             if (side == SplitInfo::Side::Left) {
@@ -88,10 +89,8 @@ namespace microgbt {
 
             int rowSize = rowIndices.size(), colSize = dataset.numFeatures();
 
-            _y = Vector(dataset.y());
-            _X = Eigen::MatrixXd(rowSize, colSize);
+            _X = MatrixType(rowSize, colSize);
             _sortedColumnValues = SortedMatrixType(rowSize, _X.cols());
-
 
             int i = 0;
             for (auto idx: rowIndices) {
