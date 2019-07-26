@@ -40,19 +40,19 @@ namespace microgbt {
          * @param v
          * @return
          */
-        inline static Eigen::VectorXi sortIndices(const Eigen::VectorXd &v) {
+         Eigen::VectorXi sortIndices(int colIndex) const{
 
             // initialize original index locations
+            Eigen::VectorXd v = _X.col(colIndex);
             unsigned int n = v.size();
+
             Eigen::VectorXi idx(n);
             // idx contains now 0,1,...,v.size() - 1
-            for (unsigned int i = 0 ; i < n; i++) {
-                idx[i] = i;
-            }
+            std::iota(idx.data(), idx.data() + idx.size(), 0);
 
             // sort indexes based on comparing values in v
             std::sort(idx.data(), idx.data() + idx.size(),
-                 [&v](size_t i1, size_t i2) {return v[i1] < v[i2];});
+                 [&v](int i1, int i2) {return v[i1] < v[i2];});
 
             return idx;
         }
@@ -65,10 +65,7 @@ namespace microgbt {
 
             // Compute sorted indices per column
             for (long j = 0; j < X.cols(); j++) {
-                auto indices = sortIndices(X.col(j));
-                for (long i = 0; i < X.rows(); i++) {
-                    _sortedColumnValues(i, j) = indices[i];
-                }
+                _sortedColumnValues.col(j) = sortIndices(j);
             }
         }
 
@@ -103,7 +100,7 @@ namespace microgbt {
 
             // Compute sorted indices per column
             for (int j = 0; j < colSize; j++) {
-                _sortedColumnValues.col(j) = sortIndices(_X.col(j));
+                _sortedColumnValues.col(j) = sortIndices(j);
             }
         }
 
@@ -115,11 +112,11 @@ namespace microgbt {
             return this->_X.cols();
         }
 
-        Vector y() const {
+        inline Vector y() const {
             return _y;
         }
 
-        Eigen::RowVectorXd row(long rowIndex) const {
+        inline Eigen::RowVectorXd row(long rowIndex) const {
             return _X.row(rowIndex);
         }
 
@@ -128,7 +125,7 @@ namespace microgbt {
          * @param colIndex Index of column
          * @return
          */
-        Eigen::RowVectorXi sortedColumnIndices(long colIndex) const {
+        inline Eigen::RowVectorXi sortedColumnIndices(long colIndex) const {
             return _sortedColumnValues.col(colIndex);
         }
     };
