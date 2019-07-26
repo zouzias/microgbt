@@ -35,27 +35,6 @@ namespace microgbt {
         double _weight = 0.0;
 
         /**
-         * Return sorted indices from a vector
-         * @tparam T
-         * @param v
-         * @return
-         */
-        template <typename T>
-        inline static std::vector<size_t> sort_indexes(const std::vector<T> &v) {
-
-            // initialize original index locations
-            std::vector<size_t> idx(v.size());
-            // idx contains now 0,1,...,v.size() - 1
-            std::iota(idx.begin(), idx.end(), 0);
-
-            // sort indexes based on comparing values in v
-            sort(idx.begin(), idx.end(),
-                 [&v](size_t i1, size_t i2) {return v[i1] < v[i2];});
-
-            return idx;
-        }
-
-        /**
         * Sort the sample indices for a given feature index 'feature_id'.
         *
         * It returns sorted indices depending on type of feature (categorical or numeric):
@@ -65,12 +44,10 @@ namespace microgbt {
         * @param trainSet Input design matrix and targets as Dataset
         * @param featureId Feature / column of above matrix
         */
-        static std::vector<size_t> sortSamplesByFeature(const Dataset &trainSet,
+        static Eigen::RowVectorXi sortSamplesByFeature(const Dataset &trainSet,
                                                         int featureId) {
 
-            Vector values(trainSet.nRows());
-            Eigen::RowVectorXd featureColumn = trainSet.col(featureId);
-            return sort_indexes(Vector(featureColumn.data(), featureColumn.data() + featureColumn.size()));
+            return trainSet.sortedColumnIndices(featureId);
         }
 
     public:
@@ -152,7 +129,7 @@ namespace microgbt {
             size_t bestSortedIndex = 0;
 
             // Sort the feature by value and return permutation of indices (i.e., argsort)
-            std::vector<size_t> sortedInstanceIds = sortSamplesByFeature(trainSet, featureId);
+            Eigen::RowVectorXi sortedInstanceIds = sortSamplesByFeature(trainSet, featureId);
 
             // For each feature, compute split gain and keep the split index with maximum gain
             for (size_t i = 0 ; i < trainSet.nRows(); i++){
@@ -164,15 +141,15 @@ namespace microgbt {
 
                 if ( currentGain > bestGain) {
                     bestGain = currentGain;
-                    bestSplitNumericValue = trainSet.X()(sortedInstanceIds[i], featureId);
+                    bestSplitNumericValue = trainSet.row(sortedInstanceIds[i])(featureId);
                     bestSortedIndex = i + 1;
                 }
 
             }
 
             // Return a SplitInfo object
-            std::vector<size_t> bestLeftInstances(sortedInstanceIds.begin(), sortedInstanceIds.begin() + bestSortedIndex);
-            std::vector<size_t> bestRightInstances(sortedInstanceIds.begin() + bestSortedIndex, sortedInstanceIds.end());
+            std::vector<size_t> bestLeftInstances(sortedInstanceIds.data(), sortedInstanceIds.data() + bestSortedIndex);
+            std::vector<size_t> bestRightInstances(sortedInstanceIds.data() + bestSortedIndex, sortedInstanceIds.data() + sortedInstanceIds.size());
             return SplitInfo(bestGain, bestSplitNumericValue, bestLeftInstances, bestRightInstances);
         }
 
