@@ -43,9 +43,12 @@ namespace microgbt {
         inline static std::vector<size_t> sortIndices(const Eigen::RowVectorXd &v) {
 
             // initialize original index locations
-            std::vector<size_t> idx(v.size());
+            unsigned int n = v.size();
+            std::vector<size_t> idx(n);
             // idx contains now 0,1,...,v.size() - 1
-            std::iota(idx.begin(), idx.end(), 0);
+            for (unsigned int i = 0 ; i < n; i++) {
+                idx[i] = i;
+            }
 
             // sort indexes based on comparing values in v
             sort(idx.begin(), idx.end(),
