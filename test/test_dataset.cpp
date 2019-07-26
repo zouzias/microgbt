@@ -5,7 +5,7 @@ TEST(Dataset, DefaultConstructor)
 {
 
     int m = 2, n = 3;
-    Eigen::MatrixXd A(m, n);
+    Eigen::MatrixXd A = Eigen::MatrixXd::Zero(m, n);
     microgbt::Vector y = {1.0, 2.0, 3.0};
     microgbt::Dataset dataset(A, y);
 
@@ -17,7 +17,7 @@ TEST(Dataset, Constructor)
 {
 
     int m = 2, n = 3;
-    Eigen::MatrixXd A(m, n);
+    Eigen::MatrixXd A = Eigen::MatrixXd::Zero(m, n);
     microgbt::Vector y = {1.0, 2.0, 3.0};
     microgbt::Dataset dataset(A, y);
 
