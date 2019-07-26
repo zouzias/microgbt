@@ -9,7 +9,7 @@ namespace microgbt {
 
     using Vector = std::vector<double>;
     using MatrixType = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
-    using SortedMatrixType = Eigen::Matrix<size_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
+    using SortedMatrixType = Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 
     /**
     * Represents a machine learning "design matrix" and target vector, (X, y)
@@ -130,9 +130,8 @@ namespace microgbt {
          * @param colIndex Index of column
          * @return
          */
-        std::vector<size_t> sortedColumnIndices(long colIndex) const {
-            auto featureColumn = _sortedColumnValues.col(colIndex);
-            return std::vector<size_t>(featureColumn.data(), featureColumn.data() + featureColumn.size());
+        Eigen::RowVectorXi sortedColumnIndices(long colIndex) const {
+            return _sortedColumnValues.col(colIndex);
         }
     };
 }

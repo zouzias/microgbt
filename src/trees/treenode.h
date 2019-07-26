@@ -44,7 +44,7 @@ namespace microgbt {
         * @param trainSet Input design matrix and targets as Dataset
         * @param featureId Feature / column of above matrix
         */
-        static std::vector<size_t> sortSamplesByFeature(const Dataset &trainSet,
+        static Eigen::RowVectorXi sortSamplesByFeature(const Dataset &trainSet,
                                                         int featureId) {
 
             return trainSet.sortedColumnIndices(featureId);
@@ -129,7 +129,7 @@ namespace microgbt {
             size_t bestSortedIndex = 0;
 
             // Sort the feature by value and return permutation of indices (i.e., argsort)
-            std::vector<size_t> sortedInstanceIds = sortSamplesByFeature(trainSet, featureId);
+            Eigen::RowVectorXi sortedInstanceIds = sortSamplesByFeature(trainSet, featureId);
 
             // For each feature, compute split gain and keep the split index with maximum gain
             for (size_t i = 0 ; i < trainSet.nRows(); i++){
@@ -148,8 +148,8 @@ namespace microgbt {
             }
 
             // Return a SplitInfo object
-            std::vector<size_t> bestLeftInstances(sortedInstanceIds.begin(), sortedInstanceIds.begin() + bestSortedIndex);
-            std::vector<size_t> bestRightInstances(sortedInstanceIds.begin() + bestSortedIndex, sortedInstanceIds.end());
+            std::vector<size_t> bestLeftInstances(sortedInstanceIds.data(), sortedInstanceIds.data() + bestSortedIndex);
+            std::vector<size_t> bestRightInstances(sortedInstanceIds.data() + bestSortedIndex, sortedInstanceIds.data() + sortedInstanceIds.size());
             return SplitInfo(bestGain, bestSplitNumericValue, bestLeftInstances, bestRightInstances);
         }
 
