@@ -14,8 +14,6 @@
 
 namespace microgbt {
 
-    using Vector = std::vector<double>;
-
     /**
      * A node of a tree
      */
@@ -144,13 +142,25 @@ namespace microgbt {
                     bestSplitNumericValue = trainSet.row(sortedInstanceIds[i])(featureId);
                     bestSortedIndex = i + 1;
                 }
-
             }
 
-            // Return a SplitInfo object
-            std::vector<size_t> bestLeftInstances(sortedInstanceIds.data(), sortedInstanceIds.data() + bestSortedIndex);
-            std::vector<size_t> bestRightInstances(sortedInstanceIds.data() + bestSortedIndex, sortedInstanceIds.data() + sortedInstanceIds.size());
-            return SplitInfo(bestGain, bestSplitNumericValue, bestLeftInstances, bestRightInstances);
+            // Indices vectors required for split information
+            VectorT output(trainSet.nRows());
+            for (size_t i = 0 ; i < trainSet.nRows(); i++) {
+                output[i] = trainSet.rowIter()[sortedInstanceIds[i]];
+            }
+            VectorT bestLeftInstances(output.data(), output.data() + bestSortedIndex);
+            VectorT bestLocalLeft(sortedInstanceIds.data(), sortedInstanceIds.data() + bestSortedIndex);
+            VectorT bestRightInstances(output.data() + bestSortedIndex, output.data() + output.size());
+            VectorT bestLocalRight(sortedInstanceIds.data() + bestSortedIndex, sortedInstanceIds.data() + sortedInstanceIds.size());
+
+            return SplitInfo(bestGain,
+                    bestSplitNumericValue,
+                    bestLeftInstances,
+                    bestRightInstances,
+                    bestLocalLeft,
+                    bestLocalRight
+            );
         }
 
 

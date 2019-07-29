@@ -7,7 +7,6 @@ namespace microgbt {
         using VectorD = std::vector<double>;
         using VectorT = std::vector<size_t>;
 
-
         /**
          * SplitInfo contains information of a binary tree split such as
          * gain value, split numeric value on which best split gain is attained.
@@ -17,7 +16,7 @@ namespace microgbt {
             private:
 
             /* Best gain and value (!?) */
-            double _bestGain, _bestSplitNumericValue;
+            double _bestGain = std::numeric_limits<double>::min(), _bestSplitNumericValue = 0;
 
             /**
              * List of sample indices of the left subtree on an optimal binary tree split
@@ -28,6 +27,11 @@ namespace microgbt {
              * List of sample indices of the right subtree on an optimal binary tree split
              */
             VectorT _bestRightInstanceIds;
+
+
+            VectorT _bestLeftLocalIds;
+
+            VectorT _bestRightLocalIds;
 
             public:
 
@@ -48,8 +52,11 @@ namespace microgbt {
             SplitInfo(double
                  gain, double
                  value,
-                 std::vector<size_t>& bestLeft,
-                 std::vector<size_t>& bestRight): _bestLeftInstanceIds(bestLeft), _bestRightInstanceIds(bestRight) {
+                 VectorT& bestLeft,
+                 VectorT& bestRight,
+                 VectorT& bestLocalLeft,
+                 VectorT& bestLocalRight): _bestLeftInstanceIds(bestLeft),_bestRightInstanceIds(bestRight),
+                      _bestLeftLocalIds(bestLocalLeft), _bestRightLocalIds(bestLocalRight){
                 _bestGain = gain;
                 _bestSplitNumericValue = value;
             }
@@ -75,9 +82,9 @@ namespace microgbt {
             VectorD split(const VectorD &vector, const SplitInfo::Side &side) const {
                 VectorT rowIndices;
                 if (side == SplitInfo::Side::Left)
-                    rowIndices = getLeftIds();
+                    rowIndices = _bestLeftLocalIds;
                 else
-                    rowIndices = getRightIds();
+                    rowIndices = _bestRightLocalIds;
 
                 VectorD splitVector;
                 std::transform(rowIndices.begin(), rowIndices.end(),

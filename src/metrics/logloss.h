@@ -2,6 +2,7 @@
 
 #include<algorithm>
 #include<random>
+#include<cmath>
 #include "metric.h"
 
 namespace microgbt {

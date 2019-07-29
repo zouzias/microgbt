@@ -14,8 +14,6 @@
 
 namespace microgbt {
 
-    using Vector = std::vector<double>;
-
     /**
      * A Decision Tree with binary splits
      */

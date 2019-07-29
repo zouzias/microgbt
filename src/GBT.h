@@ -11,8 +11,6 @@
 
 namespace microgbt {
 
-    using Vector = std::vector<double>;
-
     /**
      * A Gradient Boosting Tree
      */
