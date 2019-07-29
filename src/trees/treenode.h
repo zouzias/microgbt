@@ -14,8 +14,6 @@
 
 namespace microgbt {
 
-    using Vector = std::vector<double>;
-
     /**
      * A node of a tree
      */
@@ -151,10 +149,10 @@ namespace microgbt {
             for (size_t i = 0 ; i < trainSet.nRows(); i++) {
                 output[i] = trainSet.rowIter()[sortedInstanceIds[i]];
             }
-            std::vector<size_t> bestLeftInstances(output.data(), output.data() + bestSortedIndex);
-            std::vector<size_t> bestLocalLeft(sortedInstanceIds.data(), sortedInstanceIds.data() + bestSortedIndex);
-            std::vector<size_t> bestRightInstances(output.data() + bestSortedIndex, output.data() + output.size());
-            std::vector<size_t> bestLocalRight(sortedInstanceIds.data() + bestSortedIndex, sortedInstanceIds.data() + sortedInstanceIds.size());
+            VectorT bestLeftInstances(output.data(), output.data() + bestSortedIndex);
+            VectorT bestLocalLeft(sortedInstanceIds.data(), sortedInstanceIds.data() + bestSortedIndex);
+            VectorT bestRightInstances(output.data() + bestSortedIndex, output.data() + output.size());
+            VectorT bestLocalRight(sortedInstanceIds.data() + bestSortedIndex, sortedInstanceIds.data() + sortedInstanceIds.size());
 
             return SplitInfo(bestGain,
                     bestSplitNumericValue,
