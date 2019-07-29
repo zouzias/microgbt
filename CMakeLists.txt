@@ -21,8 +21,31 @@ FIND_PACKAGE (Eigen3 3.3 REQUIRED NO_MODULE)
 
 
 # Based on https://iscinumpy.gitlab.io/post/omp-on-high-sierra/
+# and for Mojave 10.14: see https://github.com/microsoft/LightGBM/pull/1919
 if(USE_OPENMP)
-    FIND_PACKAGE(OpenMP REQUIRED)
+    find_package(OpenMP)
+
+    # If OpenMP wasn't found, try if we can find it in the default Homebrew location
+    if((NOT OPENMP_FOUND) AND (NOT OPENMP_CXX_FOUND) AND EXISTS "/usr/local/opt/libomp/lib/libomp.dylib")
+        set(OpenMP_C_FLAGS "-Xpreprocessor -fopenmp -I/usr/local/opt/libomp/include")
+        set(OpenMP_C_LIB_NAMES omp)
+        set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp -I/usr/local/opt/libomp/include")
+        set(OpenMP_CXX_LIB_NAMES omp)
+        set(OpenMP_omp_LIBRARY /usr/local/opt/libomp/lib/libomp.dylib)
+
+        find_package(OpenMP)
+        if (OPENMP_FOUND OR OPENMP_CXX_FOUND)
+            message(STATUS "Found libomp in homebrew default location.")
+        else()
+            message(FATAL_ERROR "Didn't find libomp. Tried homebrew default location but also didn't find it.")
+        endif()
+    endif()
+
+    if((NOT OPENMP_FOUND) AND (NOT OPENMP_CXX_FOUND))
+        message(FATAL_ERROR "Did not find OpenMP.")
+    endif()
+
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 else()
     # Ignore unknown #pragma warning
     if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang")

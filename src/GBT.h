@@ -8,6 +8,7 @@
 #include "metrics/metric.h"
 #include "metrics/logloss.h"
 #include "metrics/rmse.h"
+#include <chrono>
 
 
 namespace microgbt {
@@ -114,6 +115,9 @@ namespace microgbt {
             // Allow nested threading in OpenMP
             omp_set_nested(1);
 
+            // Only 2 active levels of nested parallelism
+            // omp_set_max_active_levels(2);
+
             std::vector<Tree> trees;
             long bestIteration = 0;
             double learningRate = _shrinkageRate;
@@ -123,16 +127,20 @@ namespace microgbt {
             for (long iterCount = 0; iterCount < numBoostRound; iterCount++) {
 
                 std::cout << "Iteration: " << iterCount << std::endl;
+                auto startTimestamp = std::chrono::high_resolution_clock::now();
 
                 // Current predictions
                 Vector scores = predictDatasetFromTrees(trainSet, trees);
 
                 // Compute gradient and Hessian with respect to prior predictions
+                std::cout << "Computing gradients/Hessians" << std::endl;
                 Vector gradient = _metric->gradients(scores, trainSet.y());
                 Vector hessian = _metric->hessian(scores);
 
                 // Grow a new tree learner
+                std::cout << "Building next tree" << std::endl;
                 Tree tree = buildTree(trainSet, scores, gradient, hessian, learningRate);
+                std::cout << "Tree is built" << std::endl;
 
                 // Update the learning rate
                 learningRate *= _learningRate;
@@ -141,12 +149,17 @@ namespace microgbt {
                 trees.push_back(tree);
 
                 // Update train and validation loss
+                std::cout << "Evaluating training / validation loss" << std::endl;
                 Vector trainPreds = predictDatasetFromTrees(trainSet, trees);
                 double trainLoss = _metric->lossAt(trainPreds, trainSet.y());
                 Vector validPreds = predictDatasetFromTrees(validSet, trees);
                 double currentValidationLoss = _metric->lossAt(validPreds, validSet.y());
 
-                std::cout << "[Train Loss]: " << trainLoss << " | [Valid Loss]: " << bestValidationLoss <<std::endl;
+                auto endTimestamp = std::chrono::high_resolution_clock::now();
+                auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTimestamp - startTimestamp ).count();
+                std::cout << "[Duration: " << duration << " millis][Train Loss]: " << trainLoss
+                    << " | [Valid Loss]: " << bestValidationLoss <<std::endl;
+
 
                 // Update best iteration / best validation error
                 if (currentValidationLoss < bestValidationLoss) {
@@ -205,7 +218,6 @@ namespace microgbt {
         double predictFromTrees(const Eigen::RowVectorXd &x, const std::vector<Tree> &trees) const {
             size_t n = trees.size();
             double score = 0.0;
-            #pragma omp parallel for default(none) shared(n, x, trees) reduction(+: score)
             for (size_t i = 0; i < n; i ++){
                 score += trees[i].score(x);
             }
@@ -215,7 +227,7 @@ namespace microgbt {
         Vector predictDatasetFromTrees(const Dataset &trainSet, const std::vector<Tree> &trees) const {
             size_t numSamples = trainSet.nRows();
             Vector scores(numSamples);
-            #pragma omp parallel for schedule(static)
+            #pragma omp parallel for schedule(static, 1024)
             for (size_t i = 0; i < numSamples; i++) {
                 scores[i] = predictFromTrees(trainSet.row(i), trees);
             }

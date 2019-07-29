@@ -142,7 +142,7 @@ namespace microgbt {
 
             // For each feature, compute split gain and keep the split index with maximum gain
             Vector gainPerOrderedSampleIndex(trainSet.nRows());
-            #pragma omp parallel for shared(gainPerOrderedSampleIndex) schedule(static)
+            #pragma omp parallel for schedule(static, 1024)
             for (size_t i = 0 ; i < trainSet.nRows(); i++){
                 gainPerOrderedSampleIndex[i] = calc_split_gain(G, H, cum_sum_G[i], cum_sum_H[i]);
             }
@@ -169,8 +169,7 @@ namespace microgbt {
                              bestLeftInstances,
                              bestRightInstances,
                              bestLocalLeft,
-                             bestLocalRight
-            );
+                             bestLocalRight);
         }
 
 
@@ -240,7 +239,6 @@ namespace microgbt {
 
             this->splitFeatureIndex = bestFeatureId;
             this->splitNumericValue = bestGain.splitValue();
-
 
             #pragma omp parallel sections
             {
