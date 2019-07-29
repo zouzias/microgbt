@@ -29,6 +29,11 @@ namespace microgbt {
              */
             VectorT _bestRightInstanceIds;
 
+
+            VectorT _bestLeftLocalIds;
+
+            VectorT _bestRightLocalIds;
+
             public:
 
             enum Side{
@@ -49,7 +54,10 @@ namespace microgbt {
                  gain, double
                  value,
                  std::vector<size_t>& bestLeft,
-                 std::vector<size_t>& bestRight): _bestLeftInstanceIds(bestLeft), _bestRightInstanceIds(bestRight) {
+                 std::vector<size_t>& bestRight,
+                 std::vector<size_t>& bestLocalLeft,
+                 std::vector<size_t>& bestLocalRight): _bestLeftInstanceIds(bestLeft), _bestRightInstanceIds(bestRight),
+                      _bestLeftLocalIds(bestLocalLeft), _bestRightLocalIds(bestLocalRight){
                 _bestGain = gain;
                 _bestSplitNumericValue = value;
             }
@@ -75,9 +83,9 @@ namespace microgbt {
             VectorD split(const VectorD &vector, const SplitInfo::Side &side) const {
                 VectorT rowIndices;
                 if (side == SplitInfo::Side::Left)
-                    rowIndices = getLeftIds();
+                    rowIndices = _bestLeftLocalIds;
                 else
-                    rowIndices = getRightIds();
+                    rowIndices = _bestRightLocalIds;
 
                 VectorD splitVector;
                 std::transform(rowIndices.begin(), rowIndices.end(),

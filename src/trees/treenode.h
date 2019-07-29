@@ -147,10 +147,23 @@ namespace microgbt {
 
             }
 
+            VectorT output(trainSet.nRows());
+            for (size_t i = 0 ; i < trainSet.nRows(); i++) {
+                output[i] = trainSet.rowIter()[sortedInstanceIds[i]];
+            }
             // Return a SplitInfo object
-            std::vector<size_t> bestLeftInstances(sortedInstanceIds.data(), sortedInstanceIds.data() + bestSortedIndex);
-            std::vector<size_t> bestRightInstances(sortedInstanceIds.data() + bestSortedIndex, sortedInstanceIds.data() + sortedInstanceIds.size());
-            return SplitInfo(bestGain, bestSplitNumericValue, bestLeftInstances, bestRightInstances);
+            std::vector<size_t> bestLeftInstances(output.data(), output.data() + bestSortedIndex);
+            std::vector<size_t> bestRightInstances(output.data() + bestSortedIndex, output.data() + output.size());
+
+            std::vector<size_t> bestLocalLeft(sortedInstanceIds.data(), sortedInstanceIds.data() + bestSortedIndex);
+            std::vector<size_t> bestLocalRight(sortedInstanceIds.data() + bestSortedIndex, sortedInstanceIds.data() + sortedInstanceIds.size());
+            return SplitInfo(bestGain,
+                    bestSplitNumericValue,
+                    bestLeftInstances,
+                    bestRightInstances,
+                    bestLocalLeft,
+                    bestLocalRight
+            );
         }
 
 

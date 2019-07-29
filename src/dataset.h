@@ -3,6 +3,7 @@
 #include<iostream>
 #include <Eigen/Dense>
 #include <numeric>
+#include <memory>
 #include "trees/split_info.h"
 
 namespace microgbt {
@@ -22,7 +23,7 @@ namespace microgbt {
         /**
          * Design matrix, each row correspond to a sample; each column corresponds to a feature
          */
-        MatrixType _X;
+        std::shared_ptr<MatrixType> _X;
 
 
         /**
@@ -35,6 +36,8 @@ namespace microgbt {
          */
         Vector _y;
 
+        VectorT _rowIndices;
+
         /**
          * Return sorted indices from an Eigen vector
          * @param v
@@ -43,7 +46,7 @@ namespace microgbt {
          Eigen::VectorXi sortIndices(int colIndex) const{
 
             // initialize original index locations
-            Eigen::VectorXd v = _X.col(colIndex);
+            Eigen::VectorXd v = col(colIndex);
             unsigned int n = v.size();
 
             Eigen::VectorXi idx(n);
@@ -61,12 +64,15 @@ namespace microgbt {
 
         Dataset() = default;
 
-        Dataset(const MatrixType &X, Vector &y) : _X(X), _sortedColumnValues(X.rows(), X.cols()), _y(y) {
+        Dataset(const MatrixType &X, Vector &y) : _X(std::make_shared<MatrixType>(X)), _sortedColumnValues(X.rows(), X.cols()), _y(y),
+        _rowIndices(y.size()){
 
             // Compute sorted indices per column
-            for (long j = 0; j < X.cols(); j++) {
+            for (int j = 0; j < X.cols(); j++) {
                 _sortedColumnValues.col(j) = sortIndices(j);
             }
+
+            std::iota(_rowIndices.begin(), _rowIndices.end(), 0);
         }
 
 
@@ -80,23 +86,16 @@ namespace microgbt {
          */
         Dataset(Dataset const &dataset, const SplitInfo &bestGain, SplitInfo::Side side): _y(dataset.y()) {
 
-            std::vector<size_t> rowIndices;
             if (side == SplitInfo::Side::Left) {
-                rowIndices = bestGain.getLeftIds();
+                _rowIndices = bestGain.getLeftIds();
             } else {
-                rowIndices = bestGain.getRightIds();
+                _rowIndices = bestGain.getRightIds();
             }
 
-            int rowSize = rowIndices.size(), colSize = dataset.numFeatures();
+            int rowSize = _rowIndices.size(), colSize = dataset.numFeatures();
 
-            _X = MatrixType(rowSize, colSize);
-            _sortedColumnValues = SortedMatrixType(rowSize, _X.cols());
-
-            int i = 0;
-            for (auto idx: rowIndices) {
-                _X.row(i) = dataset.row(idx);
-                i++;
-            }
+            _X = dataset.X();
+            _sortedColumnValues = SortedMatrixType(rowSize, _X->cols());
 
             // Compute sorted indices per column
             for (int j = 0; j < colSize; j++) {
@@ -105,19 +104,40 @@ namespace microgbt {
         }
 
         inline size_t nRows() const {
-            return this->_X.rows();
+            return this->_rowIndices.size();
+        }
+
+        inline VectorT rowIter() const {
+            return _rowIndices;
         }
 
         inline size_t numFeatures() const {
-            return this->_X.cols();
+            return this->_X->cols();
+        }
+
+        inline std::shared_ptr<MatrixType> X() const {
+            return _X;
         }
 
         inline Vector y() const {
-            return _y;
+            Vector proj(_rowIndices.size());
+            for (size_t i = 0; i < proj.size(); i++) {
+                proj[i] = _y[_rowIndices[i]];
+            }
+            return proj;
         }
 
         inline Eigen::RowVectorXd row(long rowIndex) const {
-            return _X.row(rowIndex);
+            return _X->row(_rowIndices[rowIndex]);
+        }
+
+        inline Eigen::RowVectorXd col(long colIndex) const {
+            Eigen::RowVectorXd column(_rowIndices.size());
+            auto fullColumn = _X->col(colIndex);
+            for (size_t i = 0; i < _rowIndices.size(); i++) {
+                column[i] = fullColumn[_rowIndices[i]];
+            }
+            return column;
         }
 
         /**
