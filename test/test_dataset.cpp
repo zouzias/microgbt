@@ -23,7 +23,7 @@ TEST(Dataset, Constructor)
 
     std::vector<size_t> left = {0};
     std::vector<size_t> right = {1, 2};
-    microgbt::SplitInfo splitInfo(0.0, 1.0, 1, left, right, left, right);
+    microgbt::SplitInfo splitInfo(dataset.sortedColumnIndices(0), 0.0, 1.0, 1);
 
     microgbt::Dataset leftDS(dataset, splitInfo, microgbt::SplitInfo::Left);
 

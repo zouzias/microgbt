@@ -89,16 +89,24 @@ namespace microgbt {
             _X = dataset.X();
             _y = dataset.yptr();
 
+            VectorT localIds;
             if (side == SplitInfo::Side::Left) {
-                _rowIndices = bestGain.getLeftIds();
+                localIds = bestGain.getLeftLocalIds();
             } else {
-                _rowIndices = bestGain.getRightIds();
+                localIds = bestGain.getRightLocalIds();
+            }
+
+            _rowIndices = VectorT(localIds.size());
+            VectorT otherRowIndices = dataset.rowIter();
+            for (size_t i = 0 ; i < localIds.size(); i++) {
+                _rowIndices[i] = otherRowIndices[localIds[i]];
             }
 
             int rows = _rowIndices.size(), cols = dataset.numFeatures();
 
             _sortedMatrixIdx = SortedMatrixType(rows, cols);
 
+            #pragma omp parallel for schedule(static)
             for ( long j = 0; j < cols; j++) {
                 _sortedMatrixIdx.col(j) = sortIndices(j);
             }
