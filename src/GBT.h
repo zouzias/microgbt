@@ -2,7 +2,6 @@
 #include <vector>
 #include<iostream>
 #include <memory>
-#include <omp.h>
 #include "dataset.h"
 #include "trees/tree.h"
 #include "metrics/metric.h"
@@ -111,9 +110,6 @@ namespace microgbt {
 
 
         void train(const Dataset &trainSet, const Dataset &validSet, int numBoostRound, int earlyStoppingRounds) {
-
-            // Allow nested threading in OpenMP
-            omp_set_nested(1);
 
             std::vector<Tree> trees;
             long bestIteration = 0;

@@ -1,4 +1,5 @@
 #pragma once
+#include <cmath>
 #include "metric.h"
 
 namespace microgbt {
