@@ -34,7 +34,7 @@ namespace microgbt {
          * @param hessian
          * @param shrinkageRate
          */
-        Tree buildTree(Dataset &trainSet, const Vector& previousPreds, const Vector &gradient,
+        Tree buildTree(const Dataset &trainSet, const Vector& previousPreds, const Vector &gradient,
                 const Vector &hessian,
                        double shrinkageRate) const {
 
@@ -99,18 +99,18 @@ namespace microgbt {
          * @param numBoostRound
          * @param earlyStoppingRounds
          */
-        void trainPython(Eigen::MatrixXd& trainX, Vector& trainY,
-                Eigen::MatrixXd& validX, Vector& validY,
+        void trainPython(const Eigen::MatrixXd& trainX, const Vector& trainY,
+                const Eigen::MatrixXd& validX, const Vector& validY,
                 int numBoostRound, int earlyStoppingRounds) {
-            Dataset trainSet(&trainX, &trainY);
-            Dataset validSet(&validX, &validY);
+            Dataset trainSet(trainX, trainY);
+            Dataset validSet(validX, validY);
 
             train(trainSet, validSet, numBoostRound, earlyStoppingRounds);
 
         }
 
 
-        void train(Dataset &trainSet, Dataset &validSet, int numBoostRound, int earlyStoppingRounds) {
+        void train(const Dataset &trainSet, const Dataset &validSet, int numBoostRound, int earlyStoppingRounds) {
 
             // Allow nested threading in OpenMP
             omp_set_nested(1);

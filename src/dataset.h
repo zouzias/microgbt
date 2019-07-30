@@ -24,12 +24,12 @@ namespace microgbt {
         /**
          * Design matrix, each row correspond to a sample; each column corresponds to a feature
          */
-        MatrixType* _X;
+        std::shared_ptr<MatrixType> _X;
 
         /**
          * Target vector
          */
-        Vector* _y;
+        std::shared_ptr<Vector> _y;
 
         SortedMatrixType _sortedMatrixIdx;
 
@@ -61,15 +61,15 @@ namespace microgbt {
 
         Dataset() = default;
 
-        Dataset(MatrixType *X, Vector *y):
-        _sortedMatrixIdx(X->rows(), X->cols()),
-        _rowIndices(y->size()){
-            _X = X;
-            _y = y;
+        Dataset(const MatrixType& X, const Vector &y):
+        _sortedMatrixIdx(X.rows(), X.cols()),
+        _rowIndices(y.size()){
+            _X = std::make_shared<MatrixType>(X);
+            _y = std::make_shared<Vector>(y);
             // By default, all rows are included in the dataset
             std::iota(_rowIndices.begin(), _rowIndices.end(), 0);
 
-            for ( long j = 0; j < X->cols(); j++) {
+            for ( long j = 0; j < X.cols(); j++) {
                 _sortedMatrixIdx.col(j) = sortIndices(j);
             }
         }
@@ -124,11 +124,11 @@ namespace microgbt {
             return this->_X->cols();
         }
 
-        inline MatrixType* X() const {
+        inline std::shared_ptr<MatrixType> X() const {
             return _X;
         }
 
-        inline Vector* yptr() const {
+        inline std::shared_ptr<Vector> yptr() const {
             return _y;
         }
 
