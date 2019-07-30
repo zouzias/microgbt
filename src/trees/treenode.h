@@ -142,7 +142,6 @@ namespace microgbt {
 
             // For each feature, compute split gain and keep the split index with maximum gain
             Vector gainPerOrderedSampleIndex(trainSet.nRows());
-            #pragma omp parallel for schedule(static, 1024)
             for (size_t i = 0 ; i < trainSet.nRows(); i++){
                 gainPerOrderedSampleIndex[i] = calc_split_gain(G, H, cum_sum_G[i], cum_sum_H[i]);
             }
@@ -154,22 +153,41 @@ namespace microgbt {
             double bestSplitNumericValue = trainSet.row(sortedInstanceIds[bestGainIndex])[featureId];
             size_t bestSortedIndex = bestGainIndex + 1;
 
-            // Indices vectors required for split information
-            VectorT output(trainSet.nRows());
-            for (size_t i = 0 ; i < trainSet.nRows(); i++) {
-                output[i] = trainSet.rowIter()[sortedInstanceIds[i]];
-            }
-            VectorT bestLeftInstances(output.data(), output.data() + bestSortedIndex);
-            VectorT bestLocalLeft(sortedInstanceIds.data(), sortedInstanceIds.data() + bestSortedIndex);
-            VectorT bestRightInstances(output.data() + bestSortedIndex, output.data() + output.size());
-            VectorT bestLocalRight(sortedInstanceIds.data() + bestSortedIndex, sortedInstanceIds.data() + sortedInstanceIds.size());
-
             return SplitInfo(bestGain,
                              bestSplitNumericValue,
-                             bestLeftInstances,
-                             bestRightInstances,
-                             bestLocalLeft,
-                             bestLocalRight);
+                             bestSortedIndex,
+                             VectorT(0),
+                             VectorT(0),
+                             VectorT(0),
+                             VectorT(0));
+        }
+
+        SplitInfo updateGainInfo(const SplitInfo& bestGain,
+                            const Dataset &trainSet,
+                            int featureId) const {
+            Eigen::RowVectorXi sortedInstanceIds = sortSamplesByFeature(trainSet, featureId);
+
+            // Indices vectors required for split information
+            VectorT output(trainSet.nRows());
+            VectorT rowIndices = trainSet.rowIter();
+            #pragma omp parallel for simd
+            for (size_t i = 0 ; i < trainSet.nRows(); i++) {
+                output[i] = rowIndices[sortedInstanceIds(i)];
+            }
+
+            size_t bestSortedIndex = bestGain.getBestSortedIndex();
+            VectorT bestLeftInstances(output.begin(), output.begin() + bestSortedIndex);
+            VectorT bestLocalLeft(sortedInstanceIds.data(), sortedInstanceIds.data() + bestSortedIndex);
+            VectorT bestRightInstances(output.begin() + bestSortedIndex, output.end());
+            VectorT bestLocalRight(sortedInstanceIds.data() + bestSortedIndex, sortedInstanceIds.data() + sortedInstanceIds.size());
+
+            return SplitInfo(bestGain.bestGain(),
+                      bestGain.splitValue(),
+                      bestSortedIndex,
+                      bestLeftInstances,
+                      bestRightInstances,
+                      bestLocalLeft,
+                      bestLocalRight);
         }
 
 
@@ -229,6 +247,8 @@ namespace microgbt {
             long bestFeatureId =
                     std::max_element(gainPerFeature.begin(), gainPerFeature.end()) - gainPerFeature.begin();
             SplitInfo bestGain = gainPerFeature[bestFeatureId];
+
+            bestGain = updateGainInfo(bestGain, trainSet, bestFeatureId);
 
             // Check if best gain is less than minimum split gain (threshold)
             if (bestGain.bestGain() < this->_minSplitGain) {

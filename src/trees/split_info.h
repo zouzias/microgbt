@@ -1,4 +1,5 @@
 #pragma once
+#include <utility>
 #include<vector>
 
 
@@ -17,6 +18,8 @@ namespace microgbt {
 
             /* Best gain and value (!?) */
             double _bestGain = std::numeric_limits<double>::min(), _bestSplitNumericValue = 0;
+
+            size_t _bestSortedIndex;
 
             /**
              * List of sample indices of the left subtree on an optimal binary tree split
@@ -49,26 +52,29 @@ namespace microgbt {
                 _bestSplitNumericValue = value;
             }
 
-            SplitInfo(double
-                 gain, double
-                 value,
-                 VectorT& bestLeft,
-                 VectorT& bestRight,
-                 VectorT& bestLocalLeft,
-                 VectorT& bestLocalRight): _bestLeftInstanceIds(bestLeft),_bestRightInstanceIds(bestRight),
-                      _bestLeftLocalIds(bestLocalLeft), _bestRightLocalIds(bestLocalRight){
+            SplitInfo(double gain, double value, size_t bestSortedIdx,
+                 VectorT  bestLeft,
+                 VectorT  bestRight,
+                 VectorT  bestLocalLeft,
+                 VectorT  bestLocalRight): _bestLeftInstanceIds(std::move(bestLeft)),_bestRightInstanceIds(std::move(bestRight)),
+                      _bestLeftLocalIds(std::move(bestLocalLeft)), _bestRightLocalIds(std::move(bestLocalRight)){
                 _bestGain = gain;
                 _bestSplitNumericValue = value;
+                _bestSortedIndex = bestSortedIdx;
             }
 
             bool operator < (const SplitInfo& rhs) const { return this->_bestGain <= rhs.bestGain(); }
 
-            double bestGain() const {
+            inline double bestGain() const {
                 return _bestGain;
             }
 
-            double splitValue() const {
+            inline double splitValue() const {
                 return _bestSplitNumericValue;
+            }
+
+            inline size_t getBestSortedIndex() const {
+                return _bestSortedIndex;
             }
 
             VectorT getLeftIds() const {

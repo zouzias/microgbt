@@ -15,5 +15,5 @@ popd
 
 # Run titanic example
 pushd ./examples/
-./test-titanic.py
+./test-lightgbm-example.py
 popd

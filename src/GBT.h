@@ -99,11 +99,11 @@ namespace microgbt {
          * @param numBoostRound
          * @param earlyStoppingRounds
          */
-        void trainPython(const Eigen::MatrixXd& trainX, Vector& trainY,
-                const Eigen::MatrixXd& validX, Vector& validY,
+        void trainPython(Eigen::MatrixXd& trainX, Vector& trainY,
+                Eigen::MatrixXd& validX, Vector& validY,
                 int numBoostRound, int earlyStoppingRounds) {
-            Dataset trainSet(trainX, trainY);
-            Dataset validSet(validX, validY);
+            Dataset trainSet(&trainX, &trainY);
+            Dataset validSet(&validX, &validY);
 
             train(trainSet, validSet, numBoostRound, earlyStoppingRounds);
 
@@ -115,9 +115,6 @@ namespace microgbt {
             // Allow nested threading in OpenMP
             omp_set_nested(1);
 
-            // Only 2 active levels of nested parallelism
-            // omp_set_max_active_levels(2);
-
             std::vector<Tree> trees;
             long bestIteration = 0;
             double learningRate = _shrinkageRate;
@@ -126,21 +123,21 @@ namespace microgbt {
             // For each iteration, grow an additional tree
             for (long iterCount = 0; iterCount < numBoostRound; iterCount++) {
 
-                std::cout << "Iteration: " << iterCount << std::endl;
+                std::cout << "[Iteration: " << iterCount << "]" << std::endl;
                 auto startTimestamp = std::chrono::high_resolution_clock::now();
 
                 // Current predictions
                 Vector scores = predictDatasetFromTrees(trainSet, trees);
 
                 // Compute gradient and Hessian with respect to prior predictions
-                std::cout << "Computing gradients/Hessians" << std::endl;
+                std::cout << "[Computing gradients/Hessians vectors]" << std::endl;
                 Vector gradient = _metric->gradients(scores, trainSet.y());
                 Vector hessian = _metric->hessian(scores);
 
                 // Grow a new tree learner
-                std::cout << "Building next tree" << std::endl;
+                std::cout << "[Building next tree...]" << std::endl;
                 Tree tree = buildTree(trainSet, scores, gradient, hessian, learningRate);
-                std::cout << "Tree is built" << std::endl;
+                std::cout << "[Tree is built successfully]" << std::endl;
 
                 // Update the learning rate
                 learningRate *= _learningRate;
@@ -149,7 +146,7 @@ namespace microgbt {
                 trees.push_back(tree);
 
                 // Update train and validation loss
-                std::cout << "Evaluating training / validation loss" << std::endl;
+                std::cout << "[Evaluating training / validation losses]" << std::endl;
                 Vector trainPreds = predictDatasetFromTrees(trainSet, trees);
                 double trainLoss = _metric->lossAt(trainPreds, trainSet.y());
                 Vector validPreds = predictDatasetFromTrees(validSet, trees);
@@ -157,7 +154,7 @@ namespace microgbt {
 
                 auto endTimestamp = std::chrono::high_resolution_clock::now();
                 auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTimestamp - startTimestamp ).count();
-                std::cout << "[Duration: " << duration << " millis][Train Loss]: " << trainLoss
+                std::cout << "[Duration: " << duration << " millis] | [Train Loss]: " << trainLoss
                     << " | [Valid Loss]: " << bestValidationLoss <<std::endl;
 
 
@@ -227,7 +224,6 @@ namespace microgbt {
         Vector predictDatasetFromTrees(const Dataset &trainSet, const std::vector<Tree> &trees) const {
             size_t numSamples = trainSet.nRows();
             Vector scores(numSamples);
-            #pragma omp parallel for schedule(static, 1024)
             for (size_t i = 0; i < numSamples; i++) {
                 scores[i] = predictFromTrees(trainSet.row(i), trees);
             }
