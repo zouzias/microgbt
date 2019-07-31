@@ -1,4 +1,6 @@
 #pragma once
+#include <utility>
+#include <Eigen/Dense>
 #include<vector>
 
 
@@ -15,23 +17,12 @@ namespace microgbt {
 
             private:
 
+            Eigen::RowVectorXi _sortedFeatureIndices;
+
             /* Best gain and value (!?) */
-            double _bestGain = std::numeric_limits<double>::min(), _bestSplitNumericValue = 0;
+            double _bestGain = std::numeric_limits<double>::min(), _bestSplitNumericValue = 0.0;
 
-            /**
-             * List of sample indices of the left subtree on an optimal binary tree split
-             */
-            VectorT _bestLeftInstanceIds;
-
-            /**
-             * List of sample indices of the right subtree on an optimal binary tree split
-             */
-            VectorT _bestRightInstanceIds;
-
-
-            VectorT _bestLeftLocalIds;
-
-            VectorT _bestRightLocalIds;
+            size_t _bestSortedIndex = -1;
 
             public:
 
@@ -42,49 +33,48 @@ namespace microgbt {
 
             explicit SplitInfo() = default;
 
-            SplitInfo(double
-            gain, double
-            value) {
+            SplitInfo(double gain, double bestSplitNumericValue) {
                 _bestGain = gain;
-                _bestSplitNumericValue = value;
+                _bestSplitNumericValue = bestSplitNumericValue;
             }
 
-            SplitInfo(double
-                 gain, double
-                 value,
-                 VectorT& bestLeft,
-                 VectorT& bestRight,
-                 VectorT& bestLocalLeft,
-                 VectorT& bestLocalRight): _bestLeftInstanceIds(bestLeft),_bestRightInstanceIds(bestRight),
-                      _bestLeftLocalIds(bestLocalLeft), _bestRightLocalIds(bestLocalRight){
+            SplitInfo(Eigen::RowVectorXi  sortedFeatureIndices, double gain, double bestSplitNumericValue, size_t bestSortedIdx):
+                _sortedFeatureIndices(std::move(sortedFeatureIndices)) {
                 _bestGain = gain;
-                _bestSplitNumericValue = value;
+                _bestSplitNumericValue = bestSplitNumericValue;
+                _bestSortedIndex = bestSortedIdx;
             }
 
             bool operator < (const SplitInfo& rhs) const { return this->_bestGain <= rhs.bestGain(); }
 
-            double bestGain() const {
+            inline double bestGain() const {
                 return _bestGain;
             }
 
-            double splitValue() const {
+            inline double splitValue() const {
                 return _bestSplitNumericValue;
             }
 
-            VectorT getLeftIds() const {
-                return _bestLeftInstanceIds;
+            inline Eigen::RowVectorXi getSortedFeatureIndices() const {
+                return _sortedFeatureIndices;
             }
 
-            VectorT getRightIds() const {
-                return _bestRightInstanceIds;
+            VectorT getLeftLocalIds() const {
+                return VectorT(_sortedFeatureIndices.data(),
+                        _sortedFeatureIndices.data() + _bestSortedIndex);
+            }
+
+            VectorT getRightLocalIds() const {
+                return VectorT(_sortedFeatureIndices.data() + _bestSortedIndex,
+                        _sortedFeatureIndices.data() + _sortedFeatureIndices.size());
             }
 
             VectorD split(const VectorD &vector, const SplitInfo::Side &side) const {
                 VectorT rowIndices;
                 if (side == SplitInfo::Side::Left)
-                    rowIndices = _bestLeftLocalIds;
+                    rowIndices = getLeftLocalIds();
                 else
-                    rowIndices = _bestRightLocalIds;
+                    rowIndices = getRightLocalIds();
 
                 VectorD splitVector;
                 std::transform(rowIndices.begin(), rowIndices.end(),
@@ -96,4 +86,4 @@ namespace microgbt {
                 return splitVector;
             }
         };
-}
+} // namespace microgbt

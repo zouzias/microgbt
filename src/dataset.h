@@ -11,6 +11,7 @@ namespace microgbt {
     using Vector = std::vector<double>;
     using VectorT = std::vector<size_t>;
     using MatrixType = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
+    using SortedMatrixType = Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 
     /**
     * Represents a machine learning "design matrix" and target vector, (X, y)
@@ -29,6 +30,8 @@ namespace microgbt {
          * Target vector
          */
         std::shared_ptr<Vector> _y;
+
+        SortedMatrixType _sortedMatrixIdx;
 
         VectorT _rowIndices;
 
@@ -58,11 +61,17 @@ namespace microgbt {
 
         Dataset() = default;
 
-        Dataset(const MatrixType &X, Vector &y) : _X(std::make_shared<MatrixType>(X)),
-        _y(std::make_shared<Vector>(y)),
+        Dataset(const MatrixType& X, const Vector &y):
+        _sortedMatrixIdx(X.rows(), X.cols()),
         _rowIndices(y.size()){
+            _X = std::make_shared<MatrixType>(X);
+            _y = std::make_shared<Vector>(y);
             // By default, all rows are included in the dataset
             std::iota(_rowIndices.begin(), _rowIndices.end(), 0);
+
+            for ( long j = 0; j < X.cols(); j++) {
+                _sortedMatrixIdx.col(j) = sortIndices(j);
+            }
         }
 
 
@@ -74,15 +83,33 @@ namespace microgbt {
          * @param bestGain
          * @param side
          */
-        Dataset(Dataset const &dataset, const SplitInfo &bestGain, SplitInfo::Side side) {
-            if (side == SplitInfo::Side::Left) {
-                _rowIndices = bestGain.getLeftIds();
-            } else {
-                _rowIndices = bestGain.getRightIds();
-            }
+        Dataset(Dataset const &dataset, const SplitInfo &bestGain, SplitInfo::Side side):
+                _X(dataset.X()),_y(dataset.yptr()) {
 
             _X = dataset.X();
             _y = dataset.yptr();
+
+            VectorT localIds;
+            if (side == SplitInfo::Side::Left) {
+                localIds = bestGain.getLeftLocalIds();
+            } else {
+                localIds = bestGain.getRightLocalIds();
+            }
+
+            _rowIndices = VectorT(localIds.size());
+            VectorT otherRowIndices = dataset.rowIter();
+            for (size_t i = 0 ; i < localIds.size(); i++) {
+                _rowIndices[i] = otherRowIndices[localIds[i]];
+            }
+
+            int rows = _rowIndices.size(), cols = dataset.numFeatures();
+
+            _sortedMatrixIdx = SortedMatrixType(rows, cols);
+
+            #pragma omp parallel for schedule(static)
+            for ( long j = 0; j < cols; j++) {
+                _sortedMatrixIdx.col(j) = sortIndices(j);
+            }
         }
 
         inline size_t nRows() const {
@@ -132,7 +159,7 @@ namespace microgbt {
          * @return
          */
         inline Eigen::RowVectorXi sortedColumnIndices(long colIndex) const {
-            return sortIndices(colIndex);
+            return _sortedMatrixIdx.col(colIndex);
         }
     };
 }

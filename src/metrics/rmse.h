@@ -1,11 +1,11 @@
 #pragma once
+#include <cmath>
 #include "metric.h"
 
 namespace microgbt {
 
-    /**
-     * Root Mean Square Error (RMSE)
-     */
+    using Vector = std::vector<double>;
+
     class RMSE: public Metric {
 
     public:
@@ -14,6 +14,7 @@ namespace microgbt {
 
         Vector gradients(const Vector &predictions, const Vector &labels) const override {
             Vector grads(predictions.size());
+
             for (size_t i = 0; i < predictions.size(); i++) {
                 grads[i] = 2* (labels[i] - predictions[i]);
             }
@@ -29,6 +30,7 @@ namespace microgbt {
 
         double lossAt(const Vector &scores, const Vector &y) const override {
             double loss = 0.0;
+
             size_t n = scores.size();
             for (size_t i = 0; i< n; i ++){
                 loss += pow(y[i] - scores[i], 2.0);

@@ -26,7 +26,7 @@ namespace microgbt {
         double _lambda, _minSplitGain, _minTreeSize;
 
         /** Root of tree */
-        std::shared_ptr<TreeNode> _root;
+        std::shared_ptr<TreeNode> root;
 
     public:
 
@@ -52,9 +52,9 @@ namespace microgbt {
                    const Vector &hessian,
                    double shrinkage) {
 
-            this->_root = std::unique_ptr<TreeNode>(new TreeNode(_lambda, _minSplitGain, _minTreeSize, _maxDepth));
+            this->root = std::unique_ptr<TreeNode>(new TreeNode(_lambda, _minSplitGain, _minTreeSize, _maxDepth));
             int depth = 0;
-            this->_root->build(trainSet, previousPreds, gradient, hessian, shrinkage, depth);
+            this->root->build(trainSet, previousPreds, gradient, hessian, shrinkage, depth);
         }
 
         /**
@@ -64,7 +64,7 @@ namespace microgbt {
          * @return Score of tree
          */
         double score(const Eigen::RowVectorXd &sample) const {
-            return _root->score(sample);
+            return root->score(sample);
         }
     };
-}
+} // namespace microgbt

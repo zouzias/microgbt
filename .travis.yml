@@ -15,9 +15,8 @@ script:
   - cd build
   - cmake ..
   - cmake --build .
-  - ctest
-  - ctest -T memcheck
-  - valgrind --leak-check=full --track-fds=yes --track-origins=yes --error-exitcode=1 ./bin/unit_tests
+  - valgrind --leak-check=full --track-fds=yes --track-origins=yes --leak-check=full --show-leak-kinds=all --error-exitcode=1 ./bin/unit_tests
+  - ./bin/unit_tests
 
 after_success:
   - coveralls --root .. -E ".*pybind11.*" -E ".*external.*" -E ".*CMakeFiles.*" -E ".*test/.*.cpp.*"

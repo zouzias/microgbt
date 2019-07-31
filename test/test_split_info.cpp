@@ -3,7 +3,7 @@
 
 TEST(microgbt, SplitInfo)
 {
-    microgbt::SplitInfo splitInfo(0.0, 1.0);
-    ASSERT_NEAR(splitInfo.bestGain(), 0.0, 1.0e-11);
-    ASSERT_NEAR(splitInfo.splitValue(), 1.0, 1.0e-11);
+    microgbt::SplitInfo gain(0.0, 1.0);
+    ASSERT_NEAR(gain.bestGain(), 0.0, 1.0e-11);
+    ASSERT_NEAR(gain.splitValue(), 1.0, 1.0e-11);
 }

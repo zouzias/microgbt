@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
-project(microgbt CXX)
+PROJECT(microgbt CXX)
 
 # project version
 set(VERSION_MAJOR 0)
@@ -11,9 +11,11 @@ set(VERSION_PATCH 0)
 # enable c++ language
 enable_language(CXX)
 set(CMAKE_CXX_STANDARD 11)
+SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Look for eigen 3.3
-find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+FIND_PACKAGE (Eigen3 3.3 REQUIRED NO_MODULE)
+
 
 # place binaries and libraries according to GNU standards
 include(GNUInstallDirs)
@@ -27,9 +29,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
 endif()
 
 if(UNIX OR MINGW OR CYGWIN)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread -O3 -Wextra -Wall -Wno-ignored-attributes -Wno-unknown-pragmas -Wno-return-type")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread -march=native -Ofast -Wextra -Wall -Wno-ignored-attributes -Wno-unknown-pragmas -Wno-return-type")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops")
 endif()
 
 add_subdirectory(src)
@@ -66,9 +67,8 @@ include_directories( ${EIGEN3_INCLUDE_DIRS} )
 # For Python integration
 add_subdirectory(pybind11)
 
-pybind11_add_module(microgbtpy src/metrics/metric.h src/trees/tree.h
-        src/GBT.h src/dataset.h
-        src/metrics/logloss.h
+pybind11_add_module(microgbtpy src/metrics/metric.h src/trees/tree.h src/GBT.h src/dataset.h src/metrics/logloss.h
         src/trees/treenode.h src/trees/split_info.h
+        src/utils.h
         src/python_api.cpp)
 #########################

@@ -7,6 +7,7 @@
 #include "metrics/metric.h"
 #include "metrics/logloss.h"
 #include "metrics/rmse.h"
+#include <chrono>
 
 
 namespace microgbt {
@@ -32,7 +33,7 @@ namespace microgbt {
          * @param hessian
          * @param shrinkageRate
          */
-        Tree buildTree(Dataset &trainSet, const Vector& previousPreds, const Vector &gradient,
+        Tree buildTree(const Dataset &trainSet, const Vector& previousPreds, const Vector &gradient,
                 const Vector &hessian,
                        double shrinkageRate) const {
 
@@ -72,10 +73,6 @@ namespace microgbt {
             return _lambda;
         }
 
-        inline double gamma() const {
-            return _gamma;
-        }
-
         inline double minSplitGain() const {
             return _minSplitGain;
         }
@@ -101,8 +98,8 @@ namespace microgbt {
          * @param numBoostRound
          * @param earlyStoppingRounds
          */
-        void trainPython(const Eigen::MatrixXd& trainX, Vector& trainY,
-                const Eigen::MatrixXd& validX, Vector& validY,
+        void trainPython(const Eigen::MatrixXd& trainX, const Vector& trainY,
+                const Eigen::MatrixXd& validX, const Vector& validY,
                 int numBoostRound, int earlyStoppingRounds) {
             Dataset trainSet(trainX, trainY);
             Dataset validSet(validX, validY);
@@ -112,7 +109,7 @@ namespace microgbt {
         }
 
 
-        void train(Dataset &trainSet, Dataset &validSet, int numBoostRound, int earlyStoppingRounds) {
+        void train(const Dataset &trainSet, const Dataset &validSet, int numBoostRound, int earlyStoppingRounds) {
 
             std::vector<Tree> trees;
             long bestIteration = 0;
@@ -122,17 +119,21 @@ namespace microgbt {
             // For each iteration, grow an additional tree
             for (long iterCount = 0; iterCount < numBoostRound; iterCount++) {
 
-                std::cout << "Iteration: " << iterCount << std::endl;
+                std::cout << "[Iteration: " << iterCount << "]" << std::endl;
+                auto startTimestamp = std::chrono::high_resolution_clock::now();
 
                 // Current predictions
                 Vector scores = predictDatasetFromTrees(trainSet, trees);
 
                 // Compute gradient and Hessian with respect to prior predictions
+                std::cout << "[Computing gradients/Hessians vectors]" << std::endl;
                 Vector gradient = _metric->gradients(scores, trainSet.y());
                 Vector hessian = _metric->hessian(scores);
 
                 // Grow a new tree learner
+                std::cout << "[Building next tree...]" << std::endl;
                 Tree tree = buildTree(trainSet, scores, gradient, hessian, learningRate);
+                std::cout << "[Tree is built successfully]" << std::endl;
 
                 // Update the learning rate
                 learningRate *= _learningRate;
@@ -141,12 +142,17 @@ namespace microgbt {
                 trees.push_back(tree);
 
                 // Update train and validation loss
+                std::cout << "[Evaluating training / validation losses]" << std::endl;
                 Vector trainPreds = predictDatasetFromTrees(trainSet, trees);
                 double trainLoss = _metric->lossAt(trainPreds, trainSet.y());
                 Vector validPreds = predictDatasetFromTrees(validSet, trees);
                 double currentValidationLoss = _metric->lossAt(validPreds, validSet.y());
 
-                std::cout << "[Train Loss]: " << trainLoss << " | [Valid Loss]: " << bestValidationLoss <<std::endl;
+                auto endTimestamp = std::chrono::high_resolution_clock::now();
+                auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTimestamp - startTimestamp ).count();
+                std::cout << "[Duration: " << duration << " millis] | [Train Loss]: " << trainLoss
+                    << " | [Valid Loss]: " << bestValidationLoss <<std::endl;
+
 
                 // Update best iteration / best validation error
                 if (currentValidationLoss < bestValidationLoss) {
@@ -202,21 +208,23 @@ namespace microgbt {
             return score;
         }
 
-        double predictFromTrees(const Eigen::RowVectorXd &x, const std::vector<Tree> &trees) {
-            double score = std::accumulate(trees.begin(), trees.end(), 0.0, [&x](double acc,
-                    const Tree& tree){
-                return acc + tree.score(x);
-            });
+        double predictFromTrees(const Eigen::RowVectorXd &x, const std::vector<Tree> &trees) const {
+            size_t n = trees.size();
+            double score = 0.0;
+            for (size_t i = 0; i < n; i ++){
+                score += trees[i].score(x);
+            }
             return _metric->scoreToPrediction(score);
         }
 
-        Vector predictDatasetFromTrees(const Dataset &trainSet, std::vector<Tree> &trees) {
-            Vector scores(trainSet.nRows(), 0.0);
-            for (size_t i = 0; i < trainSet.nRows(); i++) {
+        Vector predictDatasetFromTrees(const Dataset &trainSet, const std::vector<Tree> &trees) const {
+            size_t numSamples = trainSet.nRows();
+            Vector scores(numSamples);
+            for (size_t i = 0; i < numSamples; i++) {
                 scores[i] = predictFromTrees(trainSet.row(i), trees);
             }
 
             return scores;
         }
     };
-}
+} // namespace microgbt
