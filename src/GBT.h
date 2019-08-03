@@ -98,8 +98,8 @@ namespace microgbt {
          * @param numBoostRound
          * @param earlyStoppingRounds
          */
-        void trainPython(const Eigen::MatrixXd& trainX, const Vector& trainY,
-                const Eigen::MatrixXd& validX, const Vector& validY,
+        void trainPython(const MatrixType& trainX, const Vector& trainY,
+                const MatrixType& validX, const Vector& validY,
                 int numBoostRound, int earlyStoppingRounds) {
             Dataset trainSet(trainX, trainY);
             Dataset validSet(validX, validY);
