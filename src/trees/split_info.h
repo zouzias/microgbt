@@ -22,7 +22,7 @@ namespace microgbt {
             /* Best gain and value (!?) */
             double _bestGain = std::numeric_limits<double>::min(), _bestSplitNumericValue = 0.0;
 
-            size_t _bestSortedIndex = -1;
+            size_t _bestSortedIndex = -1, _bestFeatureId = -1;
 
             public:
 
@@ -55,8 +55,11 @@ namespace microgbt {
                 return _bestSplitNumericValue;
             }
 
-            inline Eigen::RowVectorXi getSortedFeatureIndices() const {
-                return _sortedFeatureIndices;
+            void setBestFeatureId(size_t bestFeatureId) {
+                _bestFeatureId = bestFeatureId;
+            }
+            inline size_t getBestFeatureId() const {
+                return _bestFeatureId;
             }
 
             VectorT getLeftLocalIds() const {
