@@ -48,7 +48,10 @@ for cat in cats:
     df[cat] = LabelEncoder().fit_transform(df[cat].astype(str))
 data = SimpleImputer().fit_transform(df)
 
+categoricals = [ list(df.columns).index(c) for c in ['Parch', 'Cabin', 'Embarked']]
+
 print("Input dataset dimensions {}".format(data.shape))
+print("Categorical indices are {}".format(list(zip(cats, categoricals))))
 print("Target dims: {}".format(target.shape))
 
 X_train, X_test, y_train, y_test = train_test_split(
@@ -89,7 +92,7 @@ early_stopping_rounds = 10
 
 y_train = y_train.astype(np.double)
 
-gbt.train(X_train, y_train, X_valid, y_valid, num_iters, early_stopping_rounds)
+gbt.train(X_train, y_train, X_valid, y_valid, categoricals, num_iters, early_stopping_rounds)
 
 logger.info("Best iteration {}".format(gbt.best_iteration()))
 binclass_metrics(gbt, X_train, y_train, "Training")

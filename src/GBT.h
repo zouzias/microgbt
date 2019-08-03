@@ -24,7 +24,7 @@ namespace microgbt {
         std::unique_ptr<Metric> _metric;
 
         /**
-         * Return a single decision/regression tree given training data, gradient, hessian vectors and shrinkage rate
+         * Return a single decision/regression tree given input train data, Gradient vector, Hessian vector and shrinkage rate
          *
          * @param trainSet Input train dataset (features matrix and target vector)
          * @param gradient Gradient vector: each coordinate corresponds to sample (row index)
@@ -96,9 +96,10 @@ namespace microgbt {
          */
         void trainPython(const MatrixType& trainX, const Vector& trainY,
                 const MatrixType& validX, const Vector& validY,
-                int numBoostRound, int earlyStoppingRounds) {
+                const VectorT& categoricals, int numBoostRound, int earlyStoppingRounds) {
+            Dataset trainSet(trainX, trainY, categoricals);
+            Dataset validSet(validX, validY, categoricals);
 
-            Dataset trainSet(trainX, trainY), validSet(validX, validY);
             train(trainSet, validSet, numBoostRound, earlyStoppingRounds);
         }
 
@@ -110,7 +111,8 @@ namespace microgbt {
          * @param numBoostRound  Number of boosting rounds
          * @param earlyStoppingRounds number of rounds to consider for early stopping, i.e., if there is not improvement
          */
-        void train(const Dataset &trainSet, const Dataset &validSet, int numBoostRound, int earlyStoppingRounds) {
+        void train(const Dataset &trainSet, const Dataset &validSet,
+                int numBoostRound, int earlyStoppingRounds) {
 
             long bestIteration = 0;
             double learningRate = _shrinkageRate, bestValidationLoss = std::numeric_limits<double>::max();

@@ -11,6 +11,73 @@ namespace microgbt {
         // Regularization parameter of xgboost
         double _lambda;
 
+       /**
+       * Sort the sample indices for a given feature index 'feature_id'.
+       *
+       * It returns sorted indices depending on type of feature (categorical or numeric):
+       * Categorical feature: performs mean target encoding
+       * Numerical feature: natural sort on numeric value
+       *
+       * @param dataset Input design matrix and targets as Dataset
+       * @param featureId Feature / column of above matrix
+       */
+        Eigen::RowVectorXi sortSamplesByFeature(const Dataset &dataset,
+                                                       const Vector &gradient,
+                                                       int featureId) const {
+
+            // Check if it is a categorical
+            if (dataset.isCategorical(featureId)) {
+                std::cout << "Processing categorical " << featureId << std::endl;
+
+                // Aggregate values (gradients)
+                Eigen::RowVectorXd categories = dataset.col(featureId);
+                auto mte = meanTargetEncoding(categories, gradient);
+
+                // Sort categories
+                return sortVector(mte);
+            }
+            else {
+                return dataset.sortedColumnIndices(featureId);
+            }
+        }
+
+        /**
+         * Compute mean target encoding
+         * @param categoricalVector
+         * @param values
+         * @return
+         */
+        Eigen::RowVectorXd meanTargetEncoding(const Eigen::RowVectorXd &categoricalVector, const Vector &values) const {
+
+            size_t n = categoricalVector.size();
+            Eigen::RowVectorXd mte(n);
+
+            std::map<int, double> categoryToSumValues;
+            std::map<int, long> categorySize;
+
+            // Group by each categorical level and sum all gradient coefficients
+            // Keep track of group size as well
+            for (size_t i = 0; i < n; i++) {
+                int category = (int) categoricalVector[i];
+                categoryToSumValues[category] += values[i];
+                categorySize[category] += 1;
+            }
+
+            // Compute average
+            for (size_t i = 0; i < n; i++) {
+                int category = (int) categoricalVector[i];
+                categoryToSumValues[category] /= categorySize[category];
+            }
+
+            // Map categories to Mean Target Encodings
+            for (size_t i = 0; i < n; i++) {
+                int category = (int) categoricalVector[i];
+                mte[i] = categoryToSumValues[category];
+            }
+
+            return mte;
+        }
+
         /**
         * Returns objective value for a given gradient, hessian and lambda value
         *
@@ -54,7 +121,7 @@ namespace microgbt {
                                        int featureId) const {
 
             // Sort the feature by value and return permutation of indices (i.e., argsort)
-            const Eigen::RowVectorXi& sortedInstanceIds = dataset.sortedColumnIndices(featureId);
+            const Eigen::RowVectorXi& sortedInstanceIds = this->sortSamplesByFeature(dataset, gradient, featureId);
 
             // Cummulative sum of gradients and Hessian
             Vector cum_sum_G(dataset.nRows()), cum_sum_H(dataset.nRows());
@@ -111,6 +178,20 @@ namespace microgbt {
             bestSplitInfo.setBestFeatureId(bestFeatureId);
 
             return bestSplitInfo;
+        }
+
+        Eigen::VectorXi sortVector(Eigen::RowVectorXd v) const {
+            unsigned int n = v.size();
+
+            Eigen::VectorXi idx(n);
+            // idx contains now 0,1,...,v.size() - 1
+            std::iota(idx.data(), idx.data() + idx.size(), 0);
+
+            // sort indexes based on comparing values in v
+            std::sort(idx.data(), idx.data() + idx.size(),
+            [&v](int i1, int i2) {return v[i1] < v[i2];});
+
+            return idx;
         }
     };
 } // Namespace microgbt
