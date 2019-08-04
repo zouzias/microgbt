@@ -74,9 +74,6 @@ namespace microgbt {
                                        const Vector &hessian,
                                        int featureId) const {
 
-            double G = par_simd_accumulate(gradient);
-            double H = par_simd_accumulate(hessian);
-
             // Sort the feature by value and return permutation of indices (i.e., argsort)
             Eigen::RowVectorXi sortedInstanceIds = sortSamplesByFeature(dataset, featureId);
 
@@ -85,8 +82,9 @@ namespace microgbt {
             Vector cum_sum_H(dataset.nRows());
             double cum_sum_g = 0.0, cum_sum_h = 0.0;
             for (size_t i = 0 ; i < dataset.nRows(); i++) {
-                cum_sum_g += gradient[sortedInstanceIds[i]];
-                cum_sum_h += hessian[sortedInstanceIds[i]];
+                size_t idx = sortedInstanceIds[i];
+                cum_sum_g += gradient[idx];
+                cum_sum_h += hessian[idx];
                 cum_sum_G[i] = cum_sum_g;
                 cum_sum_H[i] = cum_sum_h;
             }
@@ -94,7 +92,7 @@ namespace microgbt {
             // For each feature, compute split gain and keep the split index with maximum gain
             Vector gainPerOrderedSampleIndex(dataset.nRows());
             for (size_t i = 0 ; i < dataset.nRows(); i++){
-                gainPerOrderedSampleIndex[i] = calc_split_gain(G, H, cum_sum_G[i], cum_sum_H[i]);
+                gainPerOrderedSampleIndex[i] = calc_split_gain(cum_sum_g, cum_sum_h, cum_sum_G[i], cum_sum_H[i]);
             }
 
             long bestGainIndex =
