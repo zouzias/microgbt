@@ -2,6 +2,7 @@
 #include <vector>
 #include<iostream>
 #include <memory>
+#include <numeric>
 #include "dataset.h"
 #include "trees/tree.h"
 #include "metrics/metric.h"
@@ -28,17 +29,16 @@ namespace microgbt {
         /**
          * Return a single decision tree given training data, gradient, hession and shrinkage rate
          *
-         * @param trainSet
+         * @param dataset
          * @param gradient
          * @param hessian
          * @param shrinkageRate
          */
-        Tree buildTree(const Dataset &trainSet, const Vector& previousPreds, const Vector &gradient,
-                const Vector &hessian, double shrinkageRate) const {
-
+        Tree buildTree(const Dataset &dataset, const Vector &gradient, const Vector &hessian,
+                double shrinkageRate) const {
 
             Tree tree = Tree(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
-            tree.build(trainSet, previousPreds, gradient, hessian, shrinkageRate);
+            tree.build(dataset, gradient, hessian, shrinkageRate);
             return tree;
         }
 
@@ -128,16 +128,21 @@ namespace microgbt {
                 auto startTimestamp = std::chrono::high_resolution_clock::now();
 
                 // Current predictions
-                Vector scores = predictDataset(trainSet);
+                Vector predictions = predictDataset(trainSet);
 
                 // Compute gradient and Hessian with respect to prior predictions
                 std::cout << "[Computing gradients/Hessians vectors]" << std::endl;
-                Vector gradient = _metric->gradients(scores, trainSet.y());
-                Vector hessian = _metric->hessian(scores);
+                Vector gradient = _metric->gradients(predictions, trainSet.y());
+                Vector hessian = _metric->hessian(predictions);
+
+                std::cout<< "Predictions" << std::endl;
+                for (size_t i = 0; i < gradient.size(); i++){
+                    std::cout << predictions[i] << " - " << trainSet.y()[i] << " / ";
+                }
 
                 // Grow a new tree learner
                 std::cout << "[Building next tree...]" << std::endl;
-                Tree tree = buildTree(trainSet, scores, gradient, hessian, learningRate);
+                Tree tree = buildTree(trainSet, gradient, hessian, learningRate);
                 std::cout << "[Tree is built successfully]" << std::endl;
 
                 // Update the learning rate
