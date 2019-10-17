@@ -9,8 +9,8 @@ cp lib/*.so ../python-package/
 popd
 
 pushd ./python-package/
-pip install sklearn pandas
-pip install -U .
+pip3 install sklearn pandas
+pip3 install -U .
 popd
 
 # Run titanic example

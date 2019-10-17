@@ -63,7 +63,7 @@ namespace microgbt {
           */
         inline double calc_leaf_weight(const Vector &gradient,
                                        const Vector &hessian) const {
-            return par_simd_accumulate(gradient)
+            return - par_simd_accumulate(gradient)
                    / (par_simd_accumulate(hessian) + _lambda);
         }
 
