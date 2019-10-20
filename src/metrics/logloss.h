@@ -46,8 +46,8 @@ namespace microgbt {
             return value;
         }
 
-        static inline double logit(double score) {
-            return 1.0 / (1 + exp(-score));
+        inline double logit(double score) const {
+            return clip(1.0 / (1 + exp(-score)));
         }
 
         Vector gradients(const Vector &predictions, const Vector &labels) const override {
@@ -55,7 +55,7 @@ namespace microgbt {
             Vector gradients(sz);
 
             for (unsigned long i = 0 ; i < sz; i++){
-                gradients[i] = labels[i] - predictions[i];
+                gradients[i] = predictions[i] - labels[i];
             }
 
             return gradients;
@@ -66,21 +66,21 @@ namespace microgbt {
             Vector hessians(sz);
 
             for (unsigned long i = 0 ; i < sz; i++){
-                hessians[i] = abs(logit(predictions[i])) * ( 1- abs(predictions[i]));
+                hessians[i] = predictions[i] * (1 - predictions[i]);
             }
 
             return hessians;
         }
 
-        double lossAt(const Vector &scores, const Vector &y) const override {
-            size_t n = scores.size();
+        double lossAt(const Vector &predictions, const Vector &labels) const override {
+            size_t n = predictions.size();
             double loss = 0.0;
 
             for (size_t i = 0; i < n; i ++){
-                loss += y[i] * log(clip(scores[i])) + (1 - y[i]) * log(1 - clip(scores[i]));
+                loss += labels[i] * log(predictions[i]) + (1 - labels[i]) * log(1 - predictions[i]);
             }
 
-            return -loss / n;
+            return - loss / n;
         }
 
         double scoreToPrediction(double score) const override {
