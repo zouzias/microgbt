@@ -199,6 +199,7 @@ namespace microgbt {
          */
         double sumScore(const Eigen::RowVectorXd &x, int numIterations) const {
             long double score = 0.0;
+            numIterations =  (numIterations == 0) ? _trees.size() : numIterations;
             int limit = 0;
             for (auto &tree: _trees) {
                 if (limit < numIterations) {
@@ -211,23 +212,12 @@ namespace microgbt {
             return (double)score;
         }
 
-        /**
-         *
-         * @param x
-         * @param trees
-         * @return
-         */
-        double predict(const Eigen::RowVectorXd &x) const {
-            size_t n = _trees.size();
-            double score = sumScore(x, n);
-            return _metric->scoreToPrediction(score);
-        }
-
         Vector predictDataset(const Dataset &trainSet) const {
             size_t numSamples = trainSet.nRows();
+            size_t numTrees = _trees.size();
             Vector scores(numSamples);
             for (size_t i = 0; i < numSamples; i++) {
-                scores[i] = predict(trainSet.row(i));
+                scores[i] = predict(trainSet.row(i), numTrees);
             }
 
             return scores;
