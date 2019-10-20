@@ -106,7 +106,6 @@ namespace microgbt {
 
             _sortedMatrixIdx = SortedMatrixType(rows, cols);
 
-            #pragma omp parallel for schedule(static)
             for ( long j = 0; j < cols; j++) {
                 _sortedMatrixIdx.col(j) = sortIndices(j);
             }

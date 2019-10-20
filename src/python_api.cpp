@@ -3,7 +3,6 @@
 #include <pybind11/stl.h>
 #include <vector>
 #include "GBT.h"
-#include "dataset.h"
 
 namespace py = pybind11;
 
