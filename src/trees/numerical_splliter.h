@@ -12,7 +12,7 @@ namespace microgbt {
 
         double _lambda;
 
-        /**
+       /**
        * Sort the sample indices for a given feature index 'feature_id'.
        *
        * It returns sorted indices depending on type of feature (categorical or numeric):

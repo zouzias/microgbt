@@ -6,7 +6,7 @@
 namespace microgbt {
 
     /**
-     * Splitter defines the main interface for tree splits
+     * Splitter defines the interface for binary tree splits
      *
      */
     class Splitter {

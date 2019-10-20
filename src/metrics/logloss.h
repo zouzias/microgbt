@@ -18,10 +18,7 @@ namespace microgbt {
             public Metric {
 
     private:
-
-        /*
-         * Numerical tolerance on boundary of log(x) and log(1-x) function in range [0,1]
-         */
+        // Numerical tolerance on boundary of log(x) and log(1-x) function in range [0,1]
         double _eps;
 
     public:
