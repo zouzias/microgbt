@@ -10,6 +10,12 @@ TEST(microgbt, LogLoss)
     ASSERT_NEAR(logloss.logit(1.0), 1 / ( 1 + exp(-1.0)), 1.0e-11);
 }
 
+TEST(microgbt, LogLossMiddleValue)
+{
+    LogLoss logloss;
+    ASSERT_NEAR(logloss.logit(0.0), 0.5, 1.0e-11);
+}
+
 TEST(microgbt, LogLossClipUpper)
 {
     LogLoss logloss;
@@ -32,6 +38,45 @@ TEST(microgbt, LogLossClipLowerUnderFlow)
 {
     LogLoss logloss;
     ASSERT_NEAR(logloss.clip(-10000.0), 0, 1.0e-7);
+}
+
+TEST(microgbt, LogLossGradient)
+{
+    LogLoss logloss;
+    Vector preds = Vector(10);
+    Vector targets = Vector(10);
+
+    std::fill(preds.begin(), preds.end(), 100.0);
+    std::fill(targets.begin(), targets.end(), 99.0);
+
+    Vector grads = logloss.gradients(preds, targets);
+    ASSERT_EQ(grads.size(), preds.size());
+    ASSERT_NEAR(grads[0], 100.0 - 99, 1.0e-7);
+}
+
+TEST(microgbt, LogLossHessian)
+{
+    LogLoss logloss;
+    Vector preds = Vector(10);
+
+    std::fill(preds.begin(), preds.end(), 0.5);
+
+    Vector hessian = logloss.hessian(preds);
+    ASSERT_EQ(hessian.size(), preds.size());
+    ASSERT_NEAR(hessian[0], 0.25, 1.0e-7);
+}
+
+TEST(microgbt, LogLossLossAtMustBeZero)
+{
+    LogLoss logloss;
+    Vector preds = Vector(10);
+    Vector targets = Vector(10);
+
+    std::fill(preds.begin(), preds.end(), 1.0);
+    std::fill(targets.begin(), targets.end(), 1.0);
+
+    double loss = logloss.lossAt(preds, targets);
+    ASSERT_NEAR(loss, 0, 1.0e-7);
 }
 
 TEST(microgbt, RMSE)
@@ -64,4 +109,17 @@ TEST(microgbt, RMSEGradient)
     Vector grads = rmse.gradients(preds, targets);
     ASSERT_EQ(grads.size(), preds.size());
     ASSERT_NEAR(grads[0], 2 * (100.0 - 99), 1.0e-7);
+}
+
+TEST(microgbt, RMSELossAtMustBeZero)
+{
+    RMSE rmse;
+    Vector preds = Vector(10);
+    Vector targets = Vector(10);
+
+    std::fill(preds.begin(), preds.end(), 1.0);
+    std::fill(targets.begin(), targets.end(), 1.0);
+
+    double loss = rmse.lossAt(preds, targets);
+    ASSERT_NEAR(loss, 0, 1.0e-7);
 }
