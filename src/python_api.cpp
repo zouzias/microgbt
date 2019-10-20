@@ -32,7 +32,7 @@ gbt.def("train", &microgbt::GBT::trainPython,
 // Predict API
 gbt.def("predict", &microgbt::GBT::predict, "Python API to get predictions using microGBT",
         pybind11::arg("x"),
-        pybind11::arg("num_iterations") = -1);
+        pybind11::arg("num_iterations") = 0);
 
 gbt.def("__repr__",
                  [](const microgbt::GBT &a) {

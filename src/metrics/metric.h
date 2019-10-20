@@ -9,9 +9,9 @@ namespace microgbt {
 
     /**
      * A generic metric that is defined by:
-     * * How gradient is computed based on current prediction vector and target vector.
-     * * How Hessian is computed based on current prediction vector and target vector.
-     * * Loss evaluation based on current prediction vector and target vector.
+     * * How gradient vector is computed based on current predictions and targets.
+     * * How Hessian vector is computed based on current predictions and targets.
+     * * Loss evaluation is based on current prediction vector and target vector.
      *
      */
     class Metric {
@@ -21,37 +21,38 @@ namespace microgbt {
         virtual ~Metric() = default;
 
         /**
-         * Compute the gradient at given predictions vector
+         * Compute the gradient vector at given prediction values
          *
-         * @param predictions
-         * @param labels
-         * @return
+         * @param predictions Prediction vector
+         * @param targets Vector of values to be predicted
+         * @return Gradient vector
          */
-        virtual Vector gradients(const Vector &scores, const Vector &labels) const = 0;
+        virtual Vector gradients(const Vector &predictions, const Vector &targets) const = 0;
 
         /**
-         * Return the Hessian vector at given predictions vector
+         * Return the Hessian vecto given prediction vector
          *
-         * @param predictions
-         * @param labels
-         * @return
+         * @param predictions Predictions vector
+         * @return Hessian vector
          */
-        virtual Vector hessian(const Vector &scores) const = 0;
+        virtual Vector hessian(const Vector &predictions) const = 0;
 
         /**
-         * Compute the loss at given predictions.
+         * Compute the loss at given prediction values.
          *
-         * @param predictions
-         * @param labels
-         * @return
+         * @param predictions Prediction vector
+         * @param targets Vector of values to be predicted
+         * @return Loss value
          */
-        virtual double lossAt(const Vector &scores, const Vector &labels) const = 0;
+        virtual double lossAt(const Vector &predictions, const Vector &targets) const = 0;
 
         /**
-         * Transformation required from Gradient Boosting Trees scores to final prediction
+         * Transformation required from Gradient Boosting Trees (GBT) scores to prediction.
+         *
+         * For example, the logloss will transform the score using the logit function 1 / (1 + exp(-score))
          *
          * @param score Sum of scores over all trees (of GBT)
-         * @return
+         * @return Prediction value
          */
         virtual double scoreToPrediction(double score) const = 0;
     };
