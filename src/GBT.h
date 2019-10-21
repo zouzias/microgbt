@@ -158,7 +158,6 @@ namespace microgbt {
                 std::cout << "[Duration: " << duration << " millis] | [Train Loss]: " << trainLoss
                     << " | [Valid Loss]: " << bestValidationLoss <<std::endl;
 
-
                 // Update best iteration / best validation error
                 if (currentValidationLoss < bestValidationLoss) {
                     bestValidationLoss = currentValidationLoss;
@@ -187,7 +186,7 @@ namespace microgbt {
         double predict(const Eigen::RowVectorXd &x, int numIterations) const {
             double score = sumScore(x, numIterations);
             return _metric->scoreToPrediction(score);
-        };
+        }
 
         /**
          * Return sum of scores up to numIterations
@@ -209,6 +208,7 @@ namespace microgbt {
                 else
                     break;
             }
+
             return (double)score;
         }
 
