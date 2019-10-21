@@ -1,12 +1,12 @@
 add_executable(
     unit_tests
         main.cpp
-        test_split_info.cpp
         test_metric_rmse.cpp
         test_dataset.cpp
         test_treenode.cpp
         test_tree.cpp
         test_gbt.cpp
+        test_utils.cpp
     ../src/metrics/metric.h ../src/trees/tree.h ../src/GBT.h ../src/dataset.h ../src/metrics/rmse.h)
 
 target_link_libraries(

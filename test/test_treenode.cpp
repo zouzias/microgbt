@@ -3,6 +3,6 @@
 
 TEST(microgbt, TreeNode)
 {
-    microgbt::TreeNode treeNode(1.0, 2.0, 2, 10);
+    microgbt::TreeNode treeNode(1.0, 2.0, 0);
     ASSERT_TRUE(true);
 }

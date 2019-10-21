@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import microgbtpy
 import logging.config
 import numpy as np

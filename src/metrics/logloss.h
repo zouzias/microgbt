@@ -12,7 +12,7 @@ namespace microgbt {
     /**
      * Log loss metric
      *
-     * Logistic loss: y_i ln(1 + exp(-pred_i)) + (1-y_i) ln( 1 + exp(pred_i))
+     * Negative Logistic loss: y_i ln(1 + exp(-pred_i)) + (1-y_i) ln( 1 + exp(pred_i))
      */
     class LogLoss :
             public Metric {
@@ -20,7 +20,6 @@ namespace microgbt {
     private:
         // Numerical tolerance on boundary of log(x) and log(1-x) function in range [0,1]
         double _eps;
-
     public:
 
         LogLoss() {
@@ -34,10 +33,10 @@ namespace microgbt {
          * @return
          */
         inline double clip(double value) const {
-            if ( value > 1 - _eps )
+            if (value > 1 - _eps)
                 return 1 - _eps;
 
-            if ( value < _eps)
+            if (value < _eps)
                 return _eps;
 
             return value;

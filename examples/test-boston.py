@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import microgbtpy
 from math import sqrt
 import logging.config
