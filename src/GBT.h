@@ -135,11 +135,6 @@ namespace microgbt {
                 Vector gradient = _metric->gradients(predictions, trainSet.y());
                 Vector hessian = _metric->hessian(predictions);
 
-                std::cout<< "Predictions" << std::endl;
-                for (size_t i = 0; i < gradient.size(); i++){
-                    std::cout << predictions[i] << " - " << trainSet.y()[i] << " / ";
-                }
-
                 // Grow a new tree learner
                 std::cout << "[Building next tree...]" << std::endl;
                 Tree tree = buildTree(trainSet, gradient, hessian, learningRate);
