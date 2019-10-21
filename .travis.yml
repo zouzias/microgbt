@@ -19,7 +19,7 @@ script:
   - ./bin/unit_tests
 
 after_success:
-  - coveralls --root .. -E ".*pybind11.*" -E ".*external.*" -E ".*CMakeFiles.*" -E ".*test/.*.cpp.*"
+  - coveralls --root .. --exclude build -E ".*pybind11.*" -E ".*external.*" -E ".*CMakeFiles.*" -E ".*test/.*.cpp.*"
 
 notifications:
   email: false
