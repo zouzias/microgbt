@@ -2,7 +2,7 @@ add_executable(
     unit_tests
         main.cpp
         test_split_info.cpp
-        test_metrics.cpp
+        test_metric_rmse.cpp
         test_dataset.cpp
         test_treenode.cpp
         test_tree.cpp
