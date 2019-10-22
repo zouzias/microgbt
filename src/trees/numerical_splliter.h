@@ -69,7 +69,7 @@ namespace microgbt {
 
             // For each feature, compute split gain and keep the split index with maximum gain
             Vector gainPerOrderedSampleIndex(dataset.nRows());
-            #pragma omp parallel for schedule(static, 1024)
+            #pragma omp parallel for schedule(static, 1024) default(none) shared(cum_sum_g, cum_sum_h, cum_sum_G, cum_sum_H, gainPerOrderedSampleIndex)
             for (size_t i = 0 ; i < dataset.nRows(); i++){
                 gainPerOrderedSampleIndex[i] = calc_split_gain(cum_sum_g, cum_sum_h, cum_sum_G[i], cum_sum_H[i]);
             }

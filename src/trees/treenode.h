@@ -129,7 +129,7 @@ namespace microgbt {
             this->_splitFeatureIndex = bestGain.getBestFeatureId();
             this->_splitNumericValue = bestGain.splitValue();
 
-            #pragma omp parallel sections
+            #pragma omp parallel sections default(none) shared(bestGain, shrinkage, depth)
             {
                 // Recurse on the left subtree
                 #pragma omp section

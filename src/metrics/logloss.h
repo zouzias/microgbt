@@ -46,7 +46,7 @@ namespace microgbt {
             unsigned long sz = predictions.size();
             Vector gradients(sz);
 
-            #pragma omp parallel for schedule(static)
+            #pragma omp parallel for shared(sz, gradients, labels) default(none) schedule(static)
             for (unsigned long i = 0 ; i < sz; i++){
                 gradients[i] = predictions[i] - labels[i];
             }
@@ -58,7 +58,7 @@ namespace microgbt {
             unsigned long sz = predictions.size();
             Vector hessians(sz);
 
-            #pragma omp parallel for schedule(static)
+            #pragma omp parallel for shared(sz, hessians) default(none) schedule(static)
             for (unsigned long i = 0 ; i < sz; i++){
                 hessians[i] = predictions[i] * (1 - predictions[i]);
             }
@@ -70,7 +70,7 @@ namespace microgbt {
             size_t n = predictions.size();
             double loss = 0.0;
 
-            #pragma omp parallel for shared(labels, predictions) reduction(+: loss)
+            #pragma omp parallel for shared(n, labels, predictions) default(none) reduction(+: loss)
             for (size_t i = 0; i < n; i ++){
                 loss += labels[i] * log(predictions[i]) + (1 - labels[i]) * log(1 - predictions[i]);
             }
