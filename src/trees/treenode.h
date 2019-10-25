@@ -90,6 +90,7 @@ namespace microgbt {
         }
 
         void setLeftSampleIds(const std::vector<bool>& leftSampleIds){
+            // std::fill(_leftSampleIds.begin(), _leftSampleIds.end(), false);)
             for (size_t i = 0 ; i < leftSampleIds.size(); i++) {
                 _leftSampleIds[i] = leftSampleIds[i];
             }

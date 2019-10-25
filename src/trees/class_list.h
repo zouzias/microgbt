@@ -28,12 +28,11 @@ namespace microgbt {
 
 
         void initBitSets(NodeId nodeId) {
-            if (std::find(_leftCandidateSamples.begin(), _leftCandidateSamples.end(), nodeId) == _leftCandidateSamples.end()) {
+            if (_leftCandidateSamples.find(nodeId) == _leftCandidateSamples.end()) {
 
                 _leftCandidateSamples[nodeId] = *new std::vector<bool>(_gradients.size(), false);
-            }
-            else {
-                std::fill(_leftCandidateSamples.begin(), _leftCandidateSamples.end(), false);
+            } else {
+                std::fill(_leftCandidateSamples[nodeId].begin(), _leftCandidateSamples[nodeId].end(), false);
             }
         }
 
