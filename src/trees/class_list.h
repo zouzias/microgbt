@@ -16,7 +16,7 @@ namespace microgbt {
         std::vector<NodeId> _nodeIds;
 
         // Node index to set of left subtree candidate samples
-        std::map<NodeId, std::set<long>> _leftCandidateSamples;
+        std::map<NodeId, std::vector<bool>> _leftCandidateSamples;
 
     public:
 
@@ -26,8 +26,15 @@ namespace microgbt {
             std::fill(_nodeIds.begin(), _nodeIds.end(), 0);
         }
 
-        void clean() {
-            _leftCandidateSamples.clear();
+
+        void initBitSets(NodeId nodeId) {
+            if (std::find(_leftCandidateSamples.begin(), _leftCandidateSamples.end(), nodeId) == _leftCandidateSamples.end()) {
+
+                _leftCandidateSamples[nodeId] = *new std::vector<bool>(_gradients.size(), false);
+            }
+            else {
+                std::fill(_leftCandidateSamples.begin(), _leftCandidateSamples.end(), false);
+            }
         }
 
         NodeId nodeAt(long index) const {
@@ -35,14 +42,14 @@ namespace microgbt {
         }
 
         void appendSampleToLeftSubTree(NodeId nodeId, long index) {
-            _leftCandidateSamples[nodeId].insert(index);
+            _leftCandidateSamples[nodeId][index] = true;
         }
 
         void updateNodeId(long sampleIndex, NodeId newNodeId) {
             _nodeIds[sampleIndex] = newNodeId;
         }
 
-        const std::set<long>& getLeft(NodeId nodeId) const {
+        const std::vector<bool>& getLeft(NodeId nodeId) {
             return _leftCandidateSamples.at(nodeId);
         }
 

@@ -47,10 +47,12 @@ namespace microgbt {
         long _size;
 
         // Set of sample indices that corresponse to left subtree
-        std::set<long> _leftSampleIds;
+        std::vector<bool> _leftSampleIds;
+
     public:
 
-        TreeNode(long nodeId, double lambda, size_t size){
+        TreeNode(long nodeId, double lambda, size_t numSamples, size_t nodeSize):
+                _leftSampleIds(numSamples, false){
             _nodeId = nodeId;
             _lambda = lambda;
             _bestGain = std::numeric_limits<double>::lowest();
@@ -61,7 +63,7 @@ namespace microgbt {
             _leftGradientSum = 0.0;
             _leftHessianSum = 0.0;
             _weight = 0.0;
-            _size = size;
+            _size = nodeSize;
             _isLeaf = true;
             leftSubTree = nullptr;
             rightSubTree = nullptr;
@@ -87,12 +89,14 @@ namespace microgbt {
             _bestGain = gain;
         }
 
-        void setLeftSampleIds(const std::set<long>& leftSampleIds){
-            _leftSampleIds = leftSampleIds;
+        void setLeftSampleIds(const std::vector<bool>& leftSampleIds){
+            for (size_t i = 0 ; i < leftSampleIds.size(); i++) {
+                _leftSampleIds[i] = leftSampleIds[i];
+            }
         }
 
         bool isLeftAssigned(long sampleId) {
-            return std::find(_leftSampleIds.begin(), _leftSampleIds.end(), sampleId) != _leftSampleIds.end();
+            return _leftSampleIds[sampleId];
         }
 
         void setLeftGradientSum(double value) {
@@ -117,10 +121,6 @@ namespace microgbt {
 
         long getSize() const {
             return _size;
-        }
-
-        void zero() {
-            _leftSampleIds.clear();
         }
 
         void setBestSplitValue(double bestSplitValue) {

@@ -66,9 +66,9 @@ namespace microgbt {
             _minTreeSize = minTreeSize;
         }
 
-        std::shared_ptr<TreeNode> newTreeNode(size_t size) {
+        std::shared_ptr<TreeNode> newTreeNode(size_t numSamples, size_t size) {
             long nodeId = nodes.size();
-            TreeNode node(nodeId, _lambda, size);
+            TreeNode node(nodeId, _lambda, numSamples, size);
             node.makeLeaf();
             nodes.push_back(std::make_shared<TreeNode>(node));
             return nodes[nodeId];
@@ -91,9 +91,9 @@ namespace microgbt {
                    const Vector &hessian,
                    double shrinkage) {
 
-            long nSamples = dataset.nRows();
+            long numSamples = dataset.nRows();
             // Create the root node
-            root = newTreeNode(nSamples);
+            root = newTreeNode(numSamples, numSamples);
 
             // SLIQ classlist
             ClassList classList(gradient, hessian);
@@ -121,13 +121,15 @@ namespace microgbt {
                     TreeBuilderState state(gradient, hessian);
 
                     // Clean the list of candidate left indices per leaf node
-                    classList.clean();
+                    for (auto & node : nodes){
+                        classList.initBitSets(node->getNodeId());
+                    }
 
                     Permutation perm = sortSamplesByFeature(dataset, featureIdx);
                     const Eigen::RowVectorXd featureValues = dataset.col(featureIdx);
 
                     // Go over all pre-sorted sample indices: 'sampleIdx'
-                    for (NodeId i = 0; i < nSamples; i++) {
+                    for (NodeId i = 0; i < numSamples; i++) {
                         size_t sampleIdx = perm(i);
                         double sortedFeatureValue = featureValues[sampleIdx];
                         double g = gradient[sampleIdx];
@@ -191,15 +193,15 @@ namespace microgbt {
                     }
 
                     if (nodes[i]->isLeaf()) {
-                        nodes[i]->setLeftSubTree(newTreeNode(nodes[i]->getLeftSize()), shrinkage);
-                        nodes[i]->setRightSubTree(newTreeNode(nodes[i]->getRightSize()), shrinkage);
+                        nodes[i]->setLeftSubTree(newTreeNode(numSamples, nodes[i]->getLeftSize()), shrinkage);
+                        nodes[i]->setRightSubTree(newTreeNode(numSamples, nodes[i]->getRightSize()), shrinkage);
                         nodes[i]->markInnerNode();
                     }
                 }
 
                 // Go over leaves, say “l”
                 // Update each “previous leaf” with the left or right leaf pointer
-                for (long i = 0; i < nSamples; i++) {
+                for (long i = 0; i < numSamples; i++) {
                     NodeId leafId = classList.nodeAt(i);
                     if (!nodes[leafId]->isLeaf()) {
                         if (nodes[leafId]->isLeftAssigned(i)) {
