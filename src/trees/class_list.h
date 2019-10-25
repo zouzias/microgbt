@@ -40,7 +40,7 @@ namespace microgbt {
             return _nodeIds[index];
         }
 
-        void appendSampleToLeftSubTree(NodeId nodeId, long index) {
+        void appendSampleToLeftSubTree(NodeId nodeId, size_t index) {
             _leftCandidateSamples[nodeId][index] = true;
         }
 

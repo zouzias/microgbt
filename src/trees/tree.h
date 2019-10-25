@@ -91,7 +91,7 @@ namespace microgbt {
                    const Vector &hessian,
                    double shrinkage) {
 
-            long numSamples = dataset.nRows();
+            size_t numSamples = dataset.nRows();
             // Create the root node
             root = newTreeNode(numSamples, numSamples);
 
@@ -201,7 +201,7 @@ namespace microgbt {
 
                 // Go over leaves, say “l”
                 // Update each “previous leaf” with the left or right leaf pointer
-                for (long i = 0; i < numSamples; i++) {
+                for (size_t i = 0; i < numSamples; i++) {
                     NodeId leafId = classList.nodeAt(i);
                     if (!nodes[leafId]->isLeaf()) {
                         if (nodes[leafId]->isLeftAssigned(i)) {
@@ -214,9 +214,9 @@ namespace microgbt {
             }
 
             // FIXME: remove those
-            // std::string output = toDigraph();
+            std::string output = toDigraph();
             // stdout the tree structure
-            // std::cout << output;
+            std::cout << output;
 
         }
 
