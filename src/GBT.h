@@ -21,7 +21,7 @@ namespace microgbt {
 
         int _maxDepth, _metricName;
         double _lambda, _gamma, _minSplitGain, _learningRate, _minTreeSize, _shrinkageRate;
-        size_t _bestIteration;
+        long _bestIteration;
         std::vector<Tree> _trees;
         std::unique_ptr<Metric> _metric;
 
@@ -80,7 +80,7 @@ namespace microgbt {
             return _shrinkageRate;
         }
 
-        inline size_t getBestIteration() const {
+        inline long getBestIteration() const {
             return _bestIteration;
         }
 
@@ -183,7 +183,7 @@ namespace microgbt {
          * @param numIterations Number of iterations to use for prediction. This is used in case that early stopping took place
          * @return Prediction of input sample
          */
-        double predict(const Eigen::RowVectorXd &x, int numIterations) const {
+        double predict(const Eigen::RowVectorXd &x, long numIterations) const {
             double score = sumScore(x, numIterations);
             return _metric->scoreToPrediction(score);
         }
@@ -196,9 +196,9 @@ namespace microgbt {
          * @param numIterations
          * @return
          */
-        double sumScore(const Eigen::RowVectorXd &x, int numIterations) const {
+        double sumScore(const Eigen::RowVectorXd &x, long numIterations) const {
             long double score = 0.0;
-            numIterations =  (numIterations == 0) ? _trees.size() : numIterations;
+            numIterations =  (numIterations == 0) ? (long)_trees.size() : numIterations;
             int limit = 0;
             for (auto &tree: _trees) {
                 if (limit < numIterations) {

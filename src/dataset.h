@@ -44,7 +44,7 @@ namespace microgbt {
 
             // initialize original index locations
             Eigen::VectorXd v = col(colIndex);
-            unsigned int n = v.size();
+            long n = v.size();
 
             Eigen::VectorXi idx(n);
             // idx contains now 0,1,...,v.size() - 1
@@ -52,7 +52,7 @@ namespace microgbt {
 
             // sort indexes based on comparing values in v
             std::sort(idx.data(), idx.data() + idx.size(),
-                 [&v](int i1, int i2) {return v[i1] < v[i2];});
+                 [&v](long i1, long i2) {return v[i1] < v[i2];});
 
             return idx;
         }
@@ -102,11 +102,12 @@ namespace microgbt {
                 _rowIndices[i] = otherRowIndices[localIds[i]];
             }
 
-            int rows = _rowIndices.size(), cols = dataset.numFeatures();
+            size_t rows = _rowIndices.size();
+            long cols = dataset.numFeatures();
 
             _sortedMatrixIdx = SortedMatrixType(rows, cols);
 
-            for ( long j = 0; j < cols; j++) {
+            for (long j = 0; j < cols; j++) {
                 _sortedMatrixIdx.col(j) = sortIndices(j);
             }
         }
@@ -119,7 +120,7 @@ namespace microgbt {
             return _rowIndices;
         }
 
-        inline size_t numFeatures() const {
+        inline long numFeatures() const {
             return this->_X->cols();
         }
 
@@ -145,9 +146,8 @@ namespace microgbt {
 
         inline Eigen::RowVectorXd col(long colIndex) const {
             Eigen::RowVectorXd column(_rowIndices.size());
-            auto fullColumn = _X->col(colIndex);
             for (size_t i = 0; i < _rowIndices.size(); i++) {
-                column[i] = fullColumn[_rowIndices[i]];
+                column[i] = _X->coeffRef(_rowIndices[i], colIndex);
             }
             return column;
         }
