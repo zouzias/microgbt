@@ -99,8 +99,8 @@ namespace microgbt {
             ClassList classList(gradient, hessian);
 
             // Sum the gradients / hessians over all samples
-            double G = microgbt::sum(gradient);
-            double H = microgbt::sum(hessian);
+            double G = std::accumulate(gradient.begin(), gradient.end(), 0.0);
+            double H = std::accumulate(hessian.begin(), hessian.end(), 0.0);
 
             // Root node setup: gradient/hessian/weight
             root->setLambda(_lambda);

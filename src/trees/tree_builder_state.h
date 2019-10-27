@@ -27,7 +27,7 @@ namespace microgbt {
         // Get partial Gradient/Hessian sums per tree node
         GradientHessianPair partialSums(NodeId nodeId) const {
             if (_partialSums.find(nodeId) == _partialSums.end()){
-                return GradientHessianPair(0.0, 0.0);
+                return GradientHessianPair{0.0, 0.0};
             }
             else {
                 return _partialSums.at(nodeId);
