@@ -5,7 +5,7 @@
 
 # microGBT
 
-microGBT is a minimalistic ([580 LOC](NOTES.md)) Gradient Boosting Trees implementation in C++11 following [xgboost's paper](https://arxiv.org/abs/1603.02754), i.e., the tree building process is based on the gradient and Hessian vectors.
+microGBT is a minimalistic ([680 LOC](NOTES.md)) Gradient Boosting Trees implementation in C++11 following [xgboost's paper](https://arxiv.org/abs/1603.02754), i.e., the tree building process is based on the gradient and Hessian vectors.
 
 Currently, the following loss functions are supported:
 * Logistic loss for binary classification, `logloss.h`
