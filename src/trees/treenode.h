@@ -48,23 +48,6 @@ namespace microgbt {
 
         // Set of sample indices that corresponse to left subtree
         std::set<long> _leftSampleIds;
-
-        explicit TreeNode(){
-            _nodeId = 0;
-            _lambda = 0;
-            _bestGain = std::numeric_limits<double>::min();
-            _bestSplitNumericValue = std::numeric_limits<double>::min();
-            _bestSplitFeatureId = -1;
-            _gradientSum = 0.0;
-            _hessianSum = 0.0;
-            _leftGradientSum = 0.0;
-            _leftHessianSum = 0.0;
-            _weight = 0.0;
-            _isLeaf = true;
-            leftSubTree = nullptr;
-            rightSubTree = nullptr;
-        }
-
     public:
 
         TreeNode(long nodeId, double lambda, size_t size){
@@ -82,24 +65,6 @@ namespace microgbt {
             _isLeaf = true;
             leftSubTree = nullptr;
             rightSubTree = nullptr;
-        }
-
-        TreeNode(const TreeNode &treeNode) {
-            _nodeId = treeNode._nodeId;
-            _lambda = treeNode._lambda;
-            _bestGain = treeNode._bestGain;
-            _bestSplitNumericValue = treeNode._bestSplitNumericValue;
-            _bestSplitFeatureId = treeNode._bestSplitFeatureId;
-            _gradientSum = treeNode._gradientSum;
-            _hessianSum = treeNode._hessianSum;
-            _leftGradientSum = treeNode._leftGradientSum;
-            _leftHessianSum = treeNode._leftHessianSum;
-            leftSubTree = treeNode.leftSubTree;
-            rightSubTree = treeNode.rightSubTree;
-            _isLeaf = treeNode._isLeaf;
-            _size = treeNode._size;
-            _leftSampleIds = treeNode._leftSampleIds;
-            _weight = treeNode._weight;
         }
 
         void markInnerNode() {
@@ -216,11 +181,10 @@ namespace microgbt {
             return _size - getLeftSize();
         }
 
-        void setLeftSubTree(std::shared_ptr<TreeNode> treeNodePtr, double shrinkage) {
+        void setLeftSubTree(const std::shared_ptr<TreeNode>& treeNodePtr, double shrinkage) {
             leftSubTree = treeNodePtr;
             leftSubTree->setLambda(_lambda);
             leftSubTree->setGradientSum(_leftGradientSum);
-            assert(_leftHessianSum > 0);
             leftSubTree->setHessianSum(_leftHessianSum);
             leftSubTree->_leftGradientSum = 0.0;
             leftSubTree->_leftHessianSum = 0.0;
@@ -228,11 +192,10 @@ namespace microgbt {
             leftSubTree->updateWeight(shrinkage);
         }
 
-        void setRightSubTree(std::shared_ptr<TreeNode> treeNodePtr, double shrinkage) {
+        void setRightSubTree(const std::shared_ptr<TreeNode>& treeNodePtr, double shrinkage) {
             rightSubTree = treeNodePtr;
             rightSubTree->setLambda(_lambda);
             rightSubTree->setGradientSum(getRightGradientSum());
-            assert( getRightHessianSum() >= 0);
             rightSubTree->setHessianSum(getRightHessianSum());
             rightSubTree->_leftGradientSum = 0.0;
             rightSubTree->_leftHessianSum = 0.0;
