@@ -49,22 +49,6 @@ namespace microgbt {
         // Set of sample indices that corresponse to left subtree
         std::vector<bool> _leftSampleIds;
 
-        explicit TreeNode(){
-            _nodeId = 0;
-            _lambda = 0;
-            _bestGain = std::numeric_limits<double>::min();
-            _bestSplitNumericValue = std::numeric_limits<double>::min();
-            _bestSplitFeatureId = -1;
-            _gradientSum = 0.0;
-            _hessianSum = 0.0;
-            _leftGradientSum = 0.0;
-            _leftHessianSum = 0.0;
-            _weight = 0.0;
-            _isLeaf = true;
-            leftSubTree = nullptr;
-            rightSubTree = nullptr;
-        }
-
     public:
 
         TreeNode(long nodeId, double lambda, size_t numSamples, size_t nodeSize):
@@ -106,7 +90,6 @@ namespace microgbt {
         }
 
         void setLeftSampleIds(const std::vector<bool>& leftSampleIds){
-            // std::fill(_leftSampleIds.begin(), _leftSampleIds.end(), false);)
             for (size_t i = 0 ; i < leftSampleIds.size(); i++) {
                 _leftSampleIds[i] = leftSampleIds[i];
             }
@@ -191,11 +174,15 @@ namespace microgbt {
         }
 
         inline long getLeftSize() const {
-            return _leftSampleIds.size();
+            return std::accumulate(_leftSampleIds.begin(), _leftSampleIds.end(), 0L);
         }
 
         inline long getRightSize() const {
             return _size - getLeftSize();
+        }
+
+        void zeroLeftBitset() {
+            std::fill(_leftSampleIds.begin(), _leftSampleIds.end(), false);
         }
 
         void setLeftSubTree(const std::shared_ptr<TreeNode>& treeNodePtr, double shrinkage) {
@@ -203,6 +190,7 @@ namespace microgbt {
             leftSubTree->setLambda(_lambda);
             leftSubTree->setGradientSum(_leftGradientSum);
             leftSubTree->setHessianSum(_leftHessianSum);
+            leftSubTree->zeroLeftBitset();
             leftSubTree->_leftGradientSum = 0.0;
             leftSubTree->_leftHessianSum = 0.0;
             leftSubTree->makeLeaf();
@@ -214,6 +202,7 @@ namespace microgbt {
             rightSubTree->setLambda(_lambda);
             rightSubTree->setGradientSum(getRightGradientSum());
             rightSubTree->setHessianSum(getRightHessianSum());
+            rightSubTree->zeroLeftBitset();
             rightSubTree->_leftGradientSum = 0.0;
             rightSubTree->_leftHessianSum = 0.0;
             rightSubTree->makeLeaf();

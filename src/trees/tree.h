@@ -91,7 +91,7 @@ namespace microgbt {
                    const Vector &hessian,
                    double shrinkage) {
 
-            size_t numSamples = dataset.nRows();
+            long numSamples = dataset.nRows();
             // Create the root node
             root = newTreeNode(numSamples, numSamples);
 
@@ -113,6 +113,10 @@ namespace microgbt {
             for (int depth = 0; depth < _maxDepth ; depth ++) {
                 std::cout << "[Working on depth '" << depth << "']" << std::endl;
 
+                for (auto & node : nodes){
+                    classList.allocateBitsets(node->getNodeId());
+                }
+
                 // Go over all features to compute optimal gain
                 for (FeatureId featureIdx = 0; featureIdx < dataset.numFeatures(); featureIdx++) {
                     std::cout << "[Working on feature '" << featureIdx << " out of " << dataset.numFeatures() << "']" << std::endl;
@@ -121,9 +125,7 @@ namespace microgbt {
                     TreeBuilderState state(gradient, hessian);
 
                     // Clean the list of candidate left indices per leaf node
-                    for (auto & node : nodes){
-                        classList.initBitSets(node->getNodeId());
-                    }
+                    classList.zero();
 
                     Permutation perm = sortSamplesByFeature(dataset, featureIdx);
                     const Eigen::RowVectorXd featureValues = dataset.col(featureIdx);
@@ -146,6 +148,7 @@ namespace microgbt {
 
                         // Assign sample with index sampleIdx to class list
                         classList.appendSampleToLeftSubTree(leafId, sampleIdx);
+
 
                         // If gain is better, mark it
                         if (gain > nodes[leafId]->bestGain()
@@ -214,9 +217,9 @@ namespace microgbt {
             }
 
             // FIXME: remove those
-            std::string output = toDigraph();
+            // std::string output = toDigraph();
             // stdout the tree structure
-            std::cout << output;
+            // std::cout << output;
 
         }
 
