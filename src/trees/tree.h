@@ -50,8 +50,8 @@ namespace microgbt {
          * @param dataset Input design matrix and targets as Dataset
          * @param featureId Feature / column of dataset
          */
-        static Permutation sortSamplesByFeature(const Dataset &dataset,
-                                                       int featureId) {
+        const Permutation& sortSamplesByFeature(const Dataset &dataset,
+                                                       int featureId) const {
 
             return dataset.sortedColumnIndices(featureId);
         }

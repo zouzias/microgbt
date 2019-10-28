@@ -42,16 +42,16 @@ namespace microgbt {
             _nodeIds[sampleIndex] = newNodeId;
         }
 
-        std::set<long> getLeft(NodeId nodeId) {
-            return _leftCandidateSamples[nodeId];
+        const std::set<long>& getLeft(NodeId nodeId) const {
+            return _leftCandidateSamples.at(nodeId);
         }
 
-        long getLeftSize(NodeId nodeId) {
-            return _leftCandidateSamples[nodeId].size();
+        inline long getLeftSize(NodeId nodeId) const {
+            return _leftCandidateSamples.at(nodeId).size();
         }
 
-        long getRightSize(NodeId nodeId) {
-            return (long)_gradients.size() - (long)_leftCandidateSamples[nodeId].size();
+        inline long getRightSize(NodeId nodeId) const {
+            return (long)_gradients.size() - getLeftSize(nodeId);
         }
 
     };

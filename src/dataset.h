@@ -100,7 +100,7 @@ namespace microgbt {
          * @param colIndex Index of column
          * @return
          */
-        inline Permutation sortedColumnIndices(long colIndex) const {
+        inline const Permutation& sortedColumnIndices(long colIndex) const {
             return _sortedMatrixIdx[colIndex];
         }
     };
