@@ -24,14 +24,15 @@ namespace microgbt {
                                                                           _partialSums() {
         }
 
+        void zeroAllPartialSums(long maxNodeId) {
+            for( NodeId i = 0; i< maxNodeId; i++) {
+                _partialSums[i] = GradientHessianPair{0.0, 0.0};
+            }
+        }
+
         // Get partial Gradient/Hessian sums per tree node
-        GradientHessianPair partialSums(NodeId nodeId) const {
-            if (_partialSums.find(nodeId) == _partialSums.end()){
-                return GradientHessianPair{0.0, 0.0};
-            }
-            else {
-                return _partialSums.at(nodeId);
-            }
+        inline GradientHessianPair partialSums(NodeId nodeId) const {
+            return _partialSums.at(nodeId);
         }
 
         void addToPartialSums(NodeId nodeId, double g, double h) {

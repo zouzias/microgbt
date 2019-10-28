@@ -90,9 +90,7 @@ namespace microgbt {
         }
 
         void setLeftSampleIds(const std::vector<bool>& leftSampleIds){
-            for (size_t i = 0 ; i < leftSampleIds.size(); i++) {
-                _leftSampleIds[i] = leftSampleIds[i];
-            }
+            std::copy(leftSampleIds.begin(), leftSampleIds.end(), _leftSampleIds.begin());
         }
 
         bool isLeftAssigned(size_t sampleId) {
@@ -174,7 +172,7 @@ namespace microgbt {
         }
 
         inline long getLeftSize() const {
-            return std::accumulate(_leftSampleIds.begin(), _leftSampleIds.end(), 0L);
+            return std::count(_leftSampleIds.begin(), _leftSampleIds.end(), true);
         }
 
         inline long getRightSize() const {

@@ -55,6 +55,10 @@ namespace microgbt {
             return idx;
         }
 
+        inline Eigen::RowVectorXd col(long colIndex) const {
+            return _X->col(colIndex);
+        }
+
     public:
 
         Dataset() = default;
@@ -91,8 +95,8 @@ namespace microgbt {
             return _X->row(rowIndex);
         }
 
-        inline Eigen::RowVectorXd col(long colIndex) const {
-           return _X->col(colIndex);
+        inline double operator()(long rowIndex, long colIndex) const {
+            return _X->coeffRef(rowIndex, colIndex);
         }
 
         /**

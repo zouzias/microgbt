@@ -123,17 +123,17 @@ namespace microgbt {
 
                     // Instantiate the tree builder state (SLIQ)
                     TreeBuilderState state(gradient, hessian);
+                    state.zeroAllPartialSums(nodes.size());
 
                     // Clean the list of candidate left indices per leaf node
                     classList.zero();
 
                     Permutation perm = sortSamplesByFeature(dataset, featureIdx);
-                    const Eigen::RowVectorXd featureValues = dataset.col(featureIdx);
 
                     // Go over all pre-sorted sample indices: 'sampleIdx'
                     for (NodeId i = 0; i < numSamples; i++) {
                         size_t sampleIdx = perm(i);
-                        double sortedFeatureValue = featureValues[sampleIdx];
+                        double sortedFeatureValue = dataset(sampleIdx, featureIdx);
                         double g = gradient[sampleIdx];
                         double h = hessian[sampleIdx];
                         NodeId leafId = classList.nodeAt(sampleIdx);
@@ -148,7 +148,6 @@ namespace microgbt {
 
                         // Assign sample with index sampleIdx to class list
                         classList.appendSampleToLeftSubTree(leafId, sampleIdx);
-
 
                         // If gain is better, mark it
                         if (gain > nodes[leafId]->bestGain()

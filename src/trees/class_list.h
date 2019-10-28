@@ -31,7 +31,7 @@ namespace microgbt {
             if (_leftCandidateSamples.find(nodeId) == _leftCandidateSamples.end()) {
                 _leftCandidateSamples[nodeId] = *new std::vector<bool>(_gradients.size(), false);
             } else {
-                auto& bitset = _leftCandidateSamples[nodeId];
+                auto bitset = _leftCandidateSamples[nodeId];
                 std::fill(bitset.begin(), bitset.end(), false);
             }
         }
@@ -58,9 +58,10 @@ namespace microgbt {
             return _leftCandidateSamples.at(nodeId);
         }
 
+
         long getLeftSize(NodeId nodeId) {
             const auto& bitset = _leftCandidateSamples.at(nodeId);
-            return std::accumulate(bitset.begin(), bitset.end(), 0L);
+            return std::count(bitset.begin(), bitset.end(), true);
         }
 
         long getRightSize(NodeId nodeId) {
