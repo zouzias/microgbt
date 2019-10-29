@@ -96,7 +96,7 @@ namespace microgbt {
             root = newTreeNode(numSamples, numSamples);
 
             // SLIQ classlist
-            ClassList classList(gradient, hessian, pow(2, _maxDepth));
+            ClassList classList(numSamples, pow(2, _maxDepth));
 
             // Sum the gradients / hessians over all samples
             double G = std::accumulate(gradient.begin(), gradient.end(), 0.0);

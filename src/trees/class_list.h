@@ -1,7 +1,5 @@
 #pragma once
 
-#include <set>
-
 namespace microgbt {
 
     using NodeId = long;
@@ -10,9 +8,7 @@ namespace microgbt {
      * ClassList
      */
     class ClassList {
-
-        Vector _gradients;
-        Vector _hessians;
+        long _numSamples;
         std::vector<NodeId> _nodeIds;
 
         // Node index to set of left subtree candidate samples
@@ -20,12 +16,12 @@ namespace microgbt {
 
     public:
 
-        explicit ClassList(const Vector &gradients, const Vector &hessians, long maxNumLeaves):
-        _gradients(gradients), _hessians(hessians),
-        _nodeIds(gradients.size()){
+        explicit ClassList(long numSamples, long maxNumLeaves):
+        _nodeIds(numSamples){
+            _numSamples = numSamples;
             std::fill(_nodeIds.begin(), _nodeIds.end(), 0);
             for ( long i = 0; i < maxNumLeaves; i++){
-                _leftCandidateSamples[i] = *new std::vector<bool>(_gradients.size(), false);
+                _leftCandidateSamples[i] = *new std::vector<bool>(_numSamples, false);
             }
         }
 
@@ -65,7 +61,7 @@ namespace microgbt {
         }
 
         long getRightSize(NodeId nodeId) {
-            return (long)_gradients.size() - getLeftSize(nodeId);
+            return (long)_numSamples - getLeftSize(nodeId);
         }
 
 
