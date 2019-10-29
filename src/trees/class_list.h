@@ -20,21 +20,21 @@ namespace microgbt {
 
     public:
 
-        explicit ClassList(const Vector &gradients, const Vector &hessians):
+        explicit ClassList(const Vector &gradients, const Vector &hessians, long maxNumLeaves):
         _gradients(gradients), _hessians(hessians),
         _nodeIds(gradients.size()){
             std::fill(_nodeIds.begin(), _nodeIds.end(), 0);
+            for ( long i = 0; i < maxNumLeaves; i++){
+                _leftCandidateSamples[i] = *new std::vector<bool>(_gradients.size(), false);
+            }
         }
 
 
         void allocateBitsets(NodeId nodeId) {
-            if (_leftCandidateSamples.find(nodeId) == _leftCandidateSamples.end()) {
-                _leftCandidateSamples[nodeId] = *new std::vector<bool>(_gradients.size(), false);
-            } else {
-                auto bitset = _leftCandidateSamples[nodeId];
-                std::fill(bitset.begin(), bitset.end(), false);
-            }
+            auto& bitset = _leftCandidateSamples.at(nodeId);
+            std::fill(bitset.begin(), bitset.end(), false);
         }
+
         void zero() {
             for (auto& nodeId: _leftCandidateSamples) {
                 auto& bitset = nodeId.second;

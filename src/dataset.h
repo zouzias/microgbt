@@ -75,7 +75,7 @@ namespace microgbt {
 
         Dataset(Dataset const &dataset) = default;
 
-        inline size_t nRows() const {
+        inline long nRows() const {
             return _X->rows();
         }
 

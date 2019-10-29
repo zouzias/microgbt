@@ -96,7 +96,7 @@ namespace microgbt {
             root = newTreeNode(numSamples, numSamples);
 
             // SLIQ classlist
-            ClassList classList(gradient, hessian);
+            ClassList classList(gradient, hessian, pow(2, _maxDepth));
 
             // Sum the gradients / hessians over all samples
             double G = std::accumulate(gradient.begin(), gradient.end(), 0.0);
@@ -203,7 +203,7 @@ namespace microgbt {
 
                 // Go over leaves, say “l”
                 // Update each “previous leaf” with the left or right leaf pointer
-                for (size_t i = 0; i < numSamples; i++) {
+                for (long i = 0; i < numSamples; i++) {
                     NodeId leafId = classList.nodeAt(i);
                     if (!nodes[leafId]->isLeaf()) {
                         if (nodes[leafId]->isLeftAssigned(i)) {

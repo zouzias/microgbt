@@ -22,7 +22,7 @@ namespace microgbt {
 
         int _maxDepth, _metricName;
         double _lambda, _gamma, _minSplitGain, _learningRate, _minTreeSize, _shrinkageRate;
-        size_t _bestIteration;
+        long _bestIteration;
         std::vector<Tree> _trees;
         std::unique_ptr<Metric> _metric;
 
