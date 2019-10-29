@@ -114,16 +114,23 @@ namespace microgbt {
                 std::cout << "[Working on depth '" << depth << "']" << std::endl;
 
                 for (auto & node : nodes){
-                    classList.allocateBitsets(node->getNodeId());
+                    if (node->isLeaf()) {
+                        classList.zero(node->getNodeId());
+                    }
+                    else {
+                        classList.erase(node->getNodeId());
+                    }
                 }
+
+                // Keep track of partial sums (Gradients / Hessians) per leaf node
+                TreeBuilderState state(nodes.size());
 
                 // Go over all features to compute optimal gain
                 for (FeatureId featureIdx = 0; featureIdx < dataset.numFeatures(); featureIdx++) {
                     std::cout << "[Working on feature '" << featureIdx << " out of " << dataset.numFeatures() << "']" << std::endl;
 
                     // Instantiate the tree builder state (SLIQ)
-                    TreeBuilderState state(gradient, hessian);
-                    state.zeroAllPartialSums(nodes.size());
+                    state.zeroAllPartialSums();
 
                     // Clean the list of candidate left indices per leaf node
                     classList.zero();

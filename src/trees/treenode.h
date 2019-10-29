@@ -21,7 +21,7 @@ namespace microgbt {
      * A node of a tree
      */
     class TreeNode {
-    private:
+
         NodeId _nodeId;
         double _lambda;
         std::shared_ptr<TreeNode> leftSubTree;
@@ -46,7 +46,7 @@ namespace microgbt {
         // Number of samples assigned to current node
         long _size;
 
-        // Set of sample indices that corresponse to left subtree
+        // Set of sample indices that corresponds to left subtree
         std::vector<bool> _leftSampleIds;
 
     public:
@@ -89,8 +89,8 @@ namespace microgbt {
             _bestGain = gain;
         }
 
-        void setLeftSampleIds(const std::vector<bool>& leftSampleIds){
-            std::copy(leftSampleIds.begin(), leftSampleIds.end(), _leftSampleIds.begin());
+        void setLeftSampleIds(const std::shared_ptr<std::vector<bool>> &leftSampleIds){
+            std::copy(leftSampleIds->begin(), leftSampleIds->end(), _leftSampleIds.begin());
         }
 
         bool isLeftAssigned(size_t sampleId) {

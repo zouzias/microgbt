@@ -10,7 +10,7 @@ set(VERSION_PATCH 0)
 
 # enable c++ language
 enable_language(CXX)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Look for eigen 3.3

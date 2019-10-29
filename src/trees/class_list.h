@@ -1,8 +1,10 @@
 #pragma once
+#include <memory>
 
 namespace microgbt {
 
     using NodeId = long;
+    using VectorB = std::vector<bool>;
 
     /**
      * ClassList
@@ -12,7 +14,7 @@ namespace microgbt {
         std::vector<NodeId> _nodeIds;
 
         // Node index to set of left subtree candidate samples
-        std::map<NodeId, std::vector<bool>> _leftCandidateSamples;
+        std::map<NodeId, std::shared_ptr<VectorB>> _leftCandidateSamples;
 
     public:
 
@@ -21,21 +23,24 @@ namespace microgbt {
             _numSamples = numSamples;
             std::fill(_nodeIds.begin(), _nodeIds.end(), 0);
             for ( long i = 0; i < maxNumLeaves; i++){
-                _leftCandidateSamples[i] = *new std::vector<bool>(_numSamples, false);
+                _leftCandidateSamples[i] = std::make_shared<VectorB>(_numSamples, false);
             }
         }
 
 
-        void allocateBitsets(NodeId nodeId) {
+        void zero(NodeId nodeId) {
             auto& bitset = _leftCandidateSamples.at(nodeId);
-            std::fill(bitset.begin(), bitset.end(), false);
+            std::fill(bitset->begin(), bitset->end(), false);
         }
 
         void zero() {
             for (auto& nodeId: _leftCandidateSamples) {
-                auto& bitset = nodeId.second;
-                std::fill(bitset.begin(), bitset.end(), false);
+                zero(nodeId.first);
             }
+        }
+
+        void erase(NodeId nodeId) {
+            _leftCandidateSamples.erase(nodeId);
         }
 
         NodeId nodeAt(long index) const {
@@ -43,21 +48,21 @@ namespace microgbt {
         }
 
         void appendSampleToLeftSubTree(NodeId nodeId, size_t index) {
-            _leftCandidateSamples[nodeId][index] = true;
+            _leftCandidateSamples.at(nodeId)->operator[](index) = true;
         }
 
         void updateNodeId(long sampleIndex, NodeId newNodeId) {
             _nodeIds[sampleIndex] = newNodeId;
         }
 
-        const std::vector<bool>& getLeft(NodeId nodeId) {
+        std::shared_ptr<VectorB> getLeft(NodeId nodeId) {
             return _leftCandidateSamples.at(nodeId);
         }
 
 
         long getLeftSize(NodeId nodeId) {
             const auto& bitset = _leftCandidateSamples.at(nodeId);
-            return std::count(bitset.begin(), bitset.end(), true);
+            return std::count(bitset->begin(), bitset->end(), true);
         }
 
         long getRightSize(NodeId nodeId) {
