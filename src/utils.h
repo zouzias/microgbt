@@ -21,12 +21,12 @@ namespace microgbt {
             }
         }
 
-        constexpr size_t operator()(size_t index) const{
-            return _perm.at(index);
+        inline size_t operator()(size_t index) const{
+            return _perm[index];
         }
 
-        constexpr size_t inverse(size_t index) const{
-            return _inverse.at(index);
+        inline size_t inverse(size_t index) const{
+            return _inverse[index];
         }
     };
 } // namespace microgbt
