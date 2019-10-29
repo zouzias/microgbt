@@ -21,7 +21,7 @@ namespace microgbt {
      * A node of a tree
      */
     class TreeNode {
-    private:
+
         NodeId _nodeId;
         double _lambda;
         std::shared_ptr<TreeNode> leftSubTree;
@@ -46,11 +46,13 @@ namespace microgbt {
         // Number of samples assigned to current node
         long _size;
 
-        // Set of sample indices that corresponse to left subtree
-        std::set<long> _leftSampleIds;
+        // Set of sample indices that corresponds to left subtree
+        std::vector<bool> _leftSampleIds;
+
     public:
 
-        TreeNode(long nodeId, double lambda, size_t size){
+        TreeNode(long nodeId, double lambda, size_t numSamples, size_t nodeSize):
+                _leftSampleIds(numSamples, false){
             _nodeId = nodeId;
             _lambda = lambda;
             _bestGain = std::numeric_limits<double>::lowest();
@@ -61,7 +63,7 @@ namespace microgbt {
             _leftGradientSum = 0.0;
             _leftHessianSum = 0.0;
             _weight = 0.0;
-            _size = size;
+            _size = nodeSize;
             _isLeaf = true;
             leftSubTree = nullptr;
             rightSubTree = nullptr;
@@ -87,12 +89,12 @@ namespace microgbt {
             _bestGain = gain;
         }
 
-        void setLeftSampleIds(const std::set<long>& leftSampleIds){
-            _leftSampleIds = leftSampleIds;
+        void setLeftSampleIds(const std::shared_ptr<std::vector<bool>> &leftSampleIds){
+            std::copy(leftSampleIds->begin(), leftSampleIds->end(), _leftSampleIds.begin());
         }
 
-        bool isLeftAssigned(long sampleId) {
-            return std::find(_leftSampleIds.begin(), _leftSampleIds.end(), sampleId) != _leftSampleIds.end();
+        bool isLeftAssigned(size_t sampleId) {
+            return _leftSampleIds[sampleId];
         }
 
         void setLeftGradientSum(double value) {
@@ -117,10 +119,6 @@ namespace microgbt {
 
         long getSize() const {
             return _size;
-        }
-
-        void zero() {
-            _leftSampleIds.clear();
         }
 
         void setBestSplitValue(double bestSplitValue) {
@@ -174,11 +172,15 @@ namespace microgbt {
         }
 
         inline long getLeftSize() const {
-            return _leftSampleIds.size();
+            return std::count(_leftSampleIds.begin(), _leftSampleIds.end(), true);
         }
 
         inline long getRightSize() const {
             return _size - getLeftSize();
+        }
+
+        void zeroLeftBitset() {
+            std::fill(_leftSampleIds.begin(), _leftSampleIds.end(), false);
         }
 
         void setLeftSubTree(const std::shared_ptr<TreeNode>& treeNodePtr, double shrinkage) {
@@ -186,6 +188,7 @@ namespace microgbt {
             leftSubTree->setLambda(_lambda);
             leftSubTree->setGradientSum(_leftGradientSum);
             leftSubTree->setHessianSum(_leftHessianSum);
+            leftSubTree->zeroLeftBitset();
             leftSubTree->_leftGradientSum = 0.0;
             leftSubTree->_leftHessianSum = 0.0;
             leftSubTree->makeLeaf();
@@ -197,6 +200,7 @@ namespace microgbt {
             rightSubTree->setLambda(_lambda);
             rightSubTree->setGradientSum(getRightGradientSum());
             rightSubTree->setHessianSum(getRightHessianSum());
+            rightSubTree->zeroLeftBitset();
             rightSubTree->_leftGradientSum = 0.0;
             rightSubTree->_leftHessianSum = 0.0;
             rightSubTree->makeLeaf();

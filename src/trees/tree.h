@@ -66,9 +66,9 @@ namespace microgbt {
             _minTreeSize = minTreeSize;
         }
 
-        std::shared_ptr<TreeNode> newTreeNode(size_t size) {
+        std::shared_ptr<TreeNode> newTreeNode(size_t numSamples, size_t size) {
             long nodeId = nodes.size();
-            TreeNode node(nodeId, _lambda, size);
+            TreeNode node(nodeId, _lambda, numSamples, size);
             node.makeLeaf();
             nodes.push_back(std::make_shared<TreeNode>(node));
             return nodes[nodeId];
@@ -91,12 +91,12 @@ namespace microgbt {
                    const Vector &hessian,
                    double shrinkage) {
 
-            long nSamples = dataset.nRows();
+            long numSamples = dataset.nRows();
             // Create the root node
-            root = newTreeNode(nSamples);
+            root = newTreeNode(numSamples, numSamples);
 
             // SLIQ classlist
-            ClassList classList(gradient, hessian);
+            ClassList classList(numSamples, pow(2, _maxDepth));
 
             // Sum the gradients / hessians over all samples
             double G = std::accumulate(gradient.begin(), gradient.end(), 0.0);
@@ -113,23 +113,34 @@ namespace microgbt {
             for (int depth = 0; depth < _maxDepth ; depth ++) {
                 std::cout << "[Working on depth '" << depth << "']" << std::endl;
 
+                for (auto & node : nodes){
+                    if (node->isLeaf()) {
+                        classList.zero(node->getNodeId());
+                    }
+                    else {
+                        classList.erase(node->getNodeId());
+                    }
+                }
+
+                // Keep track of partial sums (Gradients / Hessians) per leaf node
+                TreeBuilderState state(nodes.size());
+
                 // Go over all features to compute optimal gain
                 for (FeatureId featureIdx = 0; featureIdx < dataset.numFeatures(); featureIdx++) {
                     std::cout << "[Working on feature '" << featureIdx << " out of " << dataset.numFeatures() << "']" << std::endl;
 
                     // Instantiate the tree builder state (SLIQ)
-                    TreeBuilderState state(gradient, hessian);
+                    state.zeroAllPartialSums();
 
                     // Clean the list of candidate left indices per leaf node
-                    classList.clean();
+                    classList.zero();
 
                     Permutation perm = sortSamplesByFeature(dataset, featureIdx);
-                    const Eigen::RowVectorXd featureValues = dataset.col(featureIdx);
 
                     // Go over all pre-sorted sample indices: 'sampleIdx'
-                    for (NodeId i = 0; i < nSamples; i++) {
+                    for (NodeId i = 0; i < numSamples; i++) {
                         size_t sampleIdx = perm(i);
-                        double sortedFeatureValue = featureValues[sampleIdx];
+                        double sortedFeatureValue = dataset(sampleIdx, featureIdx);
                         double g = gradient[sampleIdx];
                         double h = hessian[sampleIdx];
                         NodeId leafId = classList.nodeAt(sampleIdx);
@@ -191,15 +202,15 @@ namespace microgbt {
                     }
 
                     if (nodes[i]->isLeaf()) {
-                        nodes[i]->setLeftSubTree(newTreeNode(nodes[i]->getLeftSize()), shrinkage);
-                        nodes[i]->setRightSubTree(newTreeNode(nodes[i]->getRightSize()), shrinkage);
+                        nodes[i]->setLeftSubTree(newTreeNode(numSamples, nodes[i]->getLeftSize()), shrinkage);
+                        nodes[i]->setRightSubTree(newTreeNode(numSamples, nodes[i]->getRightSize()), shrinkage);
                         nodes[i]->markInnerNode();
                     }
                 }
 
                 // Go over leaves, say “l”
                 // Update each “previous leaf” with the left or right leaf pointer
-                for (long i = 0; i < nSamples; i++) {
+                for (long i = 0; i < numSamples; i++) {
                     NodeId leafId = classList.nodeAt(i);
                     if (!nodes[leafId]->isLeaf()) {
                         if (nodes[leafId]->isLeftAssigned(i)) {
