@@ -46,6 +46,8 @@ namespace microgbt {
         // Number of samples assigned to current node
         long _size;
 
+        long _leftSize;
+
         // Set of sample indices that corresponds to left subtree
         std::vector<bool> _leftSampleIds;
 
@@ -63,6 +65,7 @@ namespace microgbt {
             _leftGradientSum = 0.0;
             _leftHessianSum = 0.0;
             _weight = 0.0;
+            _leftSize = 0;
             _size = nodeSize;
             _isLeaf = true;
             leftSubTree = nullptr;
@@ -89,8 +92,15 @@ namespace microgbt {
             _bestGain = gain;
         }
 
-        void setLeftSampleIds(const std::shared_ptr<std::vector<bool>> &leftSampleIds){
-            std::copy(leftSampleIds->begin(), leftSampleIds->end(), _leftSampleIds.begin());
+        void setLeftSize(long size){
+            _leftSize = size;
+        }
+
+        void setLeftSampleIds(const std::vector<long> &leftSampleIds){
+            std::fill(_leftSampleIds.begin(), _leftSampleIds.end(), false);
+            for (auto& idx: leftSampleIds) {
+                _leftSampleIds[idx] = true;
+            }
         }
 
         bool isLeftAssigned(size_t sampleId) {
@@ -111,6 +121,10 @@ namespace microgbt {
 
         void setBestSplitFeatureId(long id) {
             _bestSplitFeatureId = id;
+        }
+
+        long getBestSplitFeatureId() const {
+            return _bestSplitFeatureId;
         }
 
         void setWeight(double weight) {
@@ -172,7 +186,7 @@ namespace microgbt {
         }
 
         inline long getLeftSize() const {
-            return std::count(_leftSampleIds.begin(), _leftSampleIds.end(), true);
+            return _leftSize;
         }
 
         inline long getRightSize() const {

@@ -14,55 +14,41 @@ namespace microgbt {
         std::vector<NodeId> _nodeIds;
 
         // Node index to set of left subtree candidate samples
-        std::map<NodeId, std::shared_ptr<VectorB>> _leftCandidateSamples;
+        std::map<NodeId, long> _leftCandidateSamples;
 
     public:
 
-        explicit ClassList(long numSamples, long maxNumLeaves):
+        explicit ClassList(long numSamples):
         _nodeIds(numSamples){
             _numSamples = numSamples;
             std::fill(_nodeIds.begin(), _nodeIds.end(), 0);
-            for ( long i = 0; i < maxNumLeaves; i++){
-                _leftCandidateSamples[i] = std::make_shared<VectorB>(_numSamples, false);
-            }
         }
 
 
         void zero(NodeId nodeId) {
-            auto& bitset = _leftCandidateSamples.at(nodeId);
-            std::fill(bitset->begin(), bitset->end(), false);
+            _leftCandidateSamples[nodeId] = 0;
         }
 
         void zero() {
-            for (auto& nodeId: _leftCandidateSamples) {
-                zero(nodeId.first);
+            for (auto& node: _leftCandidateSamples) {
+                node.second = 0;
             }
-        }
-
-        void erase(NodeId nodeId) {
-            _leftCandidateSamples.erase(nodeId);
         }
 
         NodeId nodeAt(long index) const {
             return _nodeIds[index];
         }
 
-        void appendSampleToLeftSubTree(NodeId nodeId, size_t index) {
-            _leftCandidateSamples.at(nodeId)->operator[](index) = true;
+        void increaseLeftSizeByNode(NodeId nodeId) {
+            _leftCandidateSamples[nodeId] ++;
         }
 
         void updateNodeId(long sampleIndex, NodeId newNodeId) {
             _nodeIds[sampleIndex] = newNodeId;
         }
 
-        std::shared_ptr<VectorB> getLeft(NodeId nodeId) {
-            return _leftCandidateSamples.at(nodeId);
-        }
-
-
         long getLeftSize(NodeId nodeId) {
-            const auto& bitset = _leftCandidateSamples.at(nodeId);
-            return std::count(bitset->begin(), bitset->end(), true);
+            return _leftCandidateSamples[nodeId];
         }
 
         long getRightSize(NodeId nodeId) {
