@@ -47,6 +47,11 @@ namespace microgbt {
             _nodeIds[sampleIndex] = newNodeId;
         }
 
+        /**
+         * Returns the candidate left sub-tree size for a node
+         * @param nodeId Node id
+         * @return
+         */
         long getLeftSize(NodeId nodeId) {
             return _leftCandidateSamples[nodeId];
         }
