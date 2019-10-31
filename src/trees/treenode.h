@@ -96,11 +96,8 @@ namespace microgbt {
             _leftSize = size;
         }
 
-        void setLeftSampleIds(const std::vector<long> &leftSampleIds){
-            std::fill(_leftSampleIds.begin(), _leftSampleIds.end(), false);
-            for (auto& idx: leftSampleIds) {
-                _leftSampleIds[idx] = true;
-            }
+        void setLeftSampleId(long leftSampleId){
+            _leftSampleIds[leftSampleId] = true;
         }
 
         bool isLeftAssigned(size_t sampleId) {

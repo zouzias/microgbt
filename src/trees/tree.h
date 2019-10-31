@@ -180,7 +180,7 @@ namespace microgbt {
 
                     NodeId nodeId = node->getNodeId();
                     std::vector<long> leftIndices(leftSize);
-                    Permutation perm = sortSamplesByFeature(dataset, featureIdx);
+                    const Permutation& perm = sortSamplesByFeature(dataset, featureIdx);
 
                     // Go over all pre-sorted sample indices: 'sampleIdx'
                     long idx = 0;
@@ -188,13 +188,12 @@ namespace microgbt {
                         size_t sampleIdx = perm(idx);
                         NodeId classListNodeId = classList.nodeAt(sampleIdx);
                         if (classListNodeId == nodeId) {
-                            leftIndices[idx] = sampleIdx;
+                            node->setLeftSampleId(sampleIdx);
                         }
 
                         idx++;
                         leftSize--;
                     }
-                    node->setLeftSampleIds(leftIndices);
                 }
 
                 // At this point, leaves nodes contain all information to decide
