@@ -46,8 +46,6 @@ X_train, X_valid, y_train, y_valid = train_test_split(
     random_state=RANDOM_SEED, shuffle=True
 )
 
-
-
 params = {
     "gamma": 0.1,
     "lambda": 1.0,
@@ -56,6 +54,7 @@ params = {
     "min_split_gain": 0.1,
     "learning_rate": 0.1,
     "min_tree_size": 3,
+    "max_bin" : 16,
     "num_boosting_rounds": 1000.0,
     "metric": 1.0
 }

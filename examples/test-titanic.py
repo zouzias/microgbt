@@ -69,6 +69,7 @@ params = {
     "gamma": 0.1,
     "lambda": 1.0,
     "max_depth": 4.0,
+    "max_bin" : 16,
     "shrinkage_rate": 1.0,
     "min_split_gain": 0.1,
     "learning_rate": 0.1,

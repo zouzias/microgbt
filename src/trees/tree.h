@@ -43,15 +43,16 @@ public:
           * @param hessian Vector of second derivatives, Hessian
           * @param shrinkage Shrinkage rate
           */
-    void build(const Dataset &trainSet, const Vector &previousPreds,
+    void build(const Dataset &trainSet,
+               const std::vector<Histogram>& histograms,
+               const Vector &previousPreds,
                const Vector &gradient,
                const Vector &hessian,
-               double shrinkage)
-    {
+               double shrinkage) {
 
-        this->_root = std::unique_ptr<TreeNode>(new TreeNode(_lambda, _minSplitGain, _minTreeSize, _maxDepth));
+        this->_root = std::make_shared<TreeNode>(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
         int depth = 0;
-        this->_root->build(trainSet, previousPreds, gradient, hessian, shrinkage, depth);
+        this->_root->build(trainSet, histograms, previousPreds, gradient, hessian, shrinkage, depth);
     }
 
     /**

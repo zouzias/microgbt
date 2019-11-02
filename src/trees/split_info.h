@@ -16,6 +16,9 @@ class SplitInfo
 {
 
     // Sorted list of feature indices with respect to feature values
+    VectorT _leftSplit, _rightSplit;
+
+    // Sorted list of feature indices with respect to feature values
     Eigen::RowVectorXi _sortedFeatureIndices;
 
     /* Best gain of split and split value on which the best gain is attained */
@@ -28,11 +31,7 @@ class SplitInfo
     long _bestFeatureId = -1;
 
 public:
-    enum Side
-    {
-        Left,
-        Right
-    };
+    enum Side{ Left, Right};
 
     explicit SplitInfo() = default;
 
@@ -42,11 +41,10 @@ public:
         _bestSplitNumericValue = bestSplitNumericValue;
     }
 
-    SplitInfo(const Eigen::RowVectorXi &sortedFeatureIndices, double gain, double bestSplitNumericValue, size_t bestSortedIdx) : _sortedFeatureIndices(sortedFeatureIndices)
-    {
+    SplitInfo(double gain, double bestSplitNumericValue, VectorT leftSplit, VectorT rightSplit):
+        _leftSplit(std::move(leftSplit)), _rightSplit(std::move(rightSplit)){
         _bestGain = gain;
         _bestSplitNumericValue = bestSplitNumericValue;
-        _bestSortedIndex = bestSortedIdx;
     }
 
     bool operator<(const SplitInfo &rhs) const { return this->_bestGain <= rhs.bestGain(); }
@@ -59,44 +57,36 @@ public:
 
     inline long getBestFeatureId() const { return _bestFeatureId; }
 
-    VectorT getLeftLocalIds() const
-    {
-        return VectorT(_sortedFeatureIndices.data(), _sortedFeatureIndices.data() + _bestSortedIndex);
+    std::shared_ptr<VectorT> getLeftLocalIds() const {
+        return std::make_shared<VectorT>(_leftSplit);
     }
 
-    VectorT getRightLocalIds() const
-    {
-        return VectorT(_sortedFeatureIndices.data() + _bestSortedIndex,
-                       _sortedFeatureIndices.data() + _sortedFeatureIndices.size());
+    std::shared_ptr<VectorT>  getRightLocalIds() const {
+        return std::make_shared<VectorT>(_rightSplit);
     }
 
     /**
-             * Split a vector based on a side, i.e., left and right side.
-             *
-             * SplitInfo has the left and right subset of indices corresponding to the left and right subtree, respectively.
-             *
-             * @param vector Input vector to split
-             * @param side Left or right side
-             * @return a sub-vector of the input vector based on the split information
-             */
-    VectorD split(const VectorD &vector, const SplitInfo::Side &side) const
-    {
-        VectorT rowIndices;
-        if (side == SplitInfo::Side::Left)
-        {
+         * Split a vector based on a side, i.e., left and right side.
+         *
+         * SplitInfo has the left and right subset of indices corresponding to the left and right subtree, respectively.
+         *
+         * @param vector Input vector to split
+         * @param side Left or right side
+         * @return a sub-vector of the input vector based on the split information
+         */
+    VectorD split(const VectorD &vector, const SplitInfo::Side &side) const {
+        std::shared_ptr<VectorT> rowIndices;
+        if (side == SplitInfo::Side::Left) {
             rowIndices = getLeftLocalIds();
-        }
-        else
-        {
+        } else {
             rowIndices = getRightLocalIds();
         }
 
-        VectorD splitVector;
-        std::transform(rowIndices.begin(), rowIndices.end(),
-                       std::back_inserter(splitVector),
-                       [&vector](size_t rowIndex) {
-                           return vector[rowIndex];
-                       });
+        VectorD splitVector(rowIndices->size());
+
+        for (size_t i = 0; i < rowIndices->size(); i++){
+            splitVector[i] = vector[(*rowIndices)[i]];
+        }
 
         return splitVector;
     }

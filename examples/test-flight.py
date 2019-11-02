@@ -75,6 +75,7 @@ params = {
     "shrinkage_rate": 1.0,
     "min_split_gain": 0.1,
     "min_tree_size": 3,
+    "max_bin" : 255,
     "learning_rate": 0.1,
     "num_boosting_rounds": 100.0,
     "metric": 0
