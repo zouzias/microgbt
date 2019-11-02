@@ -22,11 +22,11 @@ namespace microgbt {
      */
     class TreeNode {
 
-        // Maximum tree depth
-        int _maxDepth;
+        // Maximum tree depth / minimum tree size
+        int _maxDepth, _minTreeSize;
 
         // Regularization parameters
-        double _lambda, _minSplitGain, _minTreeSize;
+        double _lambda, _minSplitGain;
 
         // Is the node a leaf?
         bool _isLeaf;
@@ -40,15 +40,9 @@ namespace microgbt {
         // Numeric value on which the binary tree split took place
         double _splitNumericValue, _weight;
 
-        template<typename T, typename... Args>
-        std::unique_ptr<T> make_unique(Args&&... args)
-        {
-            return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-        }
-
     public:
 
-        explicit TreeNode(double lambda, double minSplitGain, double minTreeSize, int maxDepth){
+        explicit TreeNode(double lambda, double minSplitGain, int minTreeSize, int maxDepth){
             _lambda = lambda;
             _minSplitGain = minSplitGain;
             _maxDepth = maxDepth;
@@ -94,6 +88,7 @@ namespace microgbt {
          * @param depth Current depth on building process
          */
         void build(const Dataset &trainSet,
+                   const std::vector<Histogram>& histograms,
                    const Vector &previousPreds,
                    const Vector &gradient,
                    const Vector &hessian,
@@ -115,8 +110,8 @@ namespace microgbt {
             }
 
             // Initialize a numeric splitter and find best split
-            std::unique_ptr<microgbt::Splitter> splitter = make_unique<microgbt::NumericalSplitter>(_lambda);
-            SplitInfo bestGain = splitter->findBestSplit(trainSet, gradient, hessian);
+            NumericalSplitter splitter(histograms, _lambda);
+            SplitInfo bestGain = splitter.findBestSplit(trainSet);
 
             // Check if best gain is less than minimum split gain (threshold)
             if (bestGain.bestGain() < this->_minSplitGain) {
@@ -134,18 +129,29 @@ namespace microgbt {
             Vector leftGradient = bestGain.split(gradient, SplitInfo::Side::Left);
             Vector leftHessian = bestGain.split(hessian, SplitInfo::Side::Left);
             Vector leftPreviousPreds = bestGain.split(previousPreds, SplitInfo::Side::Left);
-            this->leftSubTree = std::unique_ptr<TreeNode>(
-                    new TreeNode(_lambda, _minSplitGain, _minTreeSize, _maxDepth));
-            leftSubTree->build(leftDataset, leftPreviousPreds, leftGradient, leftHessian, shrinkage, depth + 1);
+
+            // Create Histogram on left subtree
+            std::vector<Histogram> leftHistograms = histograms;
+            for (long j = 0 ; j < leftDataset.numFeatures(); j++){
+                leftHistograms[j].fillValues(leftDataset.col(j), leftGradient, leftHessian);
+            }
+
+            this->leftSubTree = std::make_unique<TreeNode>(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
+            leftSubTree->build(leftDataset, leftHistograms, leftPreviousPreds, leftGradient, leftHessian, shrinkage, depth + 1);
 
             Dataset rightDataset(trainSet, bestGain, SplitInfo::Side::Right);
             Vector rightGradient = bestGain.split(gradient, SplitInfo::Side::Right);
             Vector rightHessian = bestGain.split(hessian, SplitInfo::Side::Right);
             Vector rightPreviousPreds = bestGain.split(previousPreds, SplitInfo::Side::Right);
 
-            this->rightSubTree = std::unique_ptr<TreeNode>(
-                    new TreeNode(_lambda, _minSplitGain, _minTreeSize, _maxDepth));
-            rightSubTree->build(rightDataset, rightPreviousPreds, rightGradient, rightHessian, shrinkage, depth + 1);
+            // Create Histogram on right subtree
+            std::vector<Histogram> rightHistograms = histograms;
+            for (long j = 0 ; j < rightDataset.numFeatures(); j++){
+                rightHistograms[j].fillValues(rightDataset.col(j), rightGradient, rightHessian);
+            }
+
+            this->rightSubTree = std::make_unique<TreeNode>(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
+            rightSubTree->build(rightDataset, rightHistograms, rightPreviousPreds, rightGradient, rightHessian, shrinkage, depth + 1);
         }
 
         /**

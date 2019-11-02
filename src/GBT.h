@@ -17,9 +17,9 @@ namespace microgbt {
      */
     class GBT {
 
-        int _maxDepth, _metricName;
-        double _lambda, _gamma, _minSplitGain, _learningRate, _minTreeSize, _shrinkageRate;
-        long _bestIteration;
+        int _maxDepth = 0, _metricName = 0, _minTreeSize = 0, _histogramNumBins = 255;
+        double _lambda = 0, _gamma = 0.0, _minSplitGain = 0.0, _learningRate = 0.0, _shrinkageRate = 0.0;
+        long _bestIteration = 0;
         std::vector<Tree> _trees;
         std::unique_ptr<Metric> _metric;
 
@@ -34,7 +34,20 @@ namespace microgbt {
         Tree buildTree(const Dataset &trainSet, const Vector& previousPreds, const Vector &gradient,
                 const Vector &hessian, double shrinkageRate) const {
             Tree tree = Tree(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
-            tree.build(trainSet, previousPreds, gradient, hessian, shrinkageRate);
+
+            auto startTimestamp = std::chrono::high_resolution_clock::now();
+            std::cout << "[Building histograms...]" << std::endl;
+            // Create histogram per feature
+            std::vector<Histogram> histograms(trainSet.numFeatures());
+            for (long j = 0 ; j < trainSet.numFeatures(); j++){
+                histograms[j] = Histogram(trainSet.col(j), gradient, hessian, _histogramNumBins);
+            }
+
+            auto endTimestamp = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTimestamp - startTimestamp ).count();
+            std::cout << "[Histograms build in " << duration << " millis ...]" << std::endl;
+
+            tree.build(trainSet, histograms, previousPreds, gradient, hessian, shrinkageRate);
             return tree;
         }
 
@@ -45,6 +58,7 @@ namespace microgbt {
         explicit GBT(const std::map<std::string, double>& params): GBT() {
             this->_lambda = params.at("lambda");
             this->_gamma = params.at("gamma");
+            this->_histogramNumBins = static_cast<int>(params.at("max_bin"));
             this->_shrinkageRate = params.at("shrinkage_rate");
             this->_minSplitGain = params.at("min_split_gain");
             this->_minTreeSize = params.at("min_tree_size");
@@ -63,6 +77,8 @@ namespace microgbt {
         inline int maxDepth() const { return _maxDepth; }
 
         inline double lambda() const { return _lambda; }
+
+        inline int maxHistogramBin() const { return _histogramNumBins; }
 
         inline double minSplitGain() const { return _minSplitGain; }
 
@@ -195,9 +211,9 @@ namespace microgbt {
         }
 
         Vector predictDataset(const Dataset &trainSet) const {
-            size_t numSamples = trainSet.nRows(), numTrees = _trees.size();
+            long numSamples = trainSet.nRows(), numTrees = static_cast<long>(_trees.size());
             Vector scores(numSamples);
-            for (size_t i = 0; i < numSamples; i++) {
+            for (long i = 0; i < numSamples; i++) {
                 scores[i] = predict(trainSet.row(i), numTrees);
             }
 

@@ -10,12 +10,11 @@ set(VERSION_PATCH 0)
 
 # enable c++ language
 enable_language(CXX)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Look for eigen 3.3
 FIND_PACKAGE (Eigen3 3.3 REQUIRED NO_MODULE)
-
 
 # place binaries and libraries according to GNU standards
 include(GNUInstallDirs)
@@ -64,10 +63,11 @@ find_package( PkgConfig )
 pkg_check_modules( EIGEN3 REQUIRED eigen3 )
 include_directories( ${EIGEN3_INCLUDE_DIRS} )
 
+
 # For Python integration
 add_subdirectory(pybind11)
 
 pybind11_add_module(microgbtpy src/metrics/metric.h src/trees/tree.h src/GBT.h src/dataset.h src/metrics/logloss.h
-        src/trees/treenode.h src/trees/split_info.h
-        src/python_api.cpp)
+        src/trees/treenode.h src/trees/split_info.h src/histogram.h src/python_api.cpp)
 #########################
+
