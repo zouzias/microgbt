@@ -57,6 +57,14 @@ namespace microgbt {
             return idx;
         }
 
+        inline Eigen::RowVectorXd col(long colIndex) const {
+            Eigen::RowVectorXd column(_rowIndices.size());
+            for (size_t i = 0; i < _rowIndices.size(); i++) {
+                column[i] = _X->coeffRef(_rowIndices[i], colIndex);
+            }
+            return column;
+        }
+
     public:
 
         Dataset() = default;
@@ -83,8 +91,7 @@ namespace microgbt {
          * @param bestGain
          * @param side
          */
-        Dataset(Dataset const &dataset, const SplitInfo &bestGain, SplitInfo::Side side):
-                _X(dataset.X()),_y(dataset.yptr()) {
+        Dataset(Dataset const &dataset, const SplitInfo &bestGain, SplitInfo::Side side) {
 
             _X = dataset.X();
             _y = dataset.yptr();
@@ -144,18 +151,14 @@ namespace microgbt {
             return _X->row(_rowIndices[rowIndex]);
         }
 
-        inline Eigen::RowVectorXd col(long colIndex) const {
-            Eigen::RowVectorXd column(_rowIndices.size());
-            for (size_t i = 0; i < _rowIndices.size(); i++) {
-                column[i] = _X->coeffRef(_rowIndices[i], colIndex);
-            }
-            return column;
-        }
-
         /**
-         * Returns a sorted vector of indices corresponding to a column
-         * @param colIndex Index of column
-         * @return
+         * Sort the sample indices for a given feature index 'feature_id'.
+         *
+         * It returns sorted indices depending on type of feature (categorical or numeric):
+         * Categorical feature: performs mean target encoding (see feature/categorical branch)
+         * Numerical feature: natural sort on numeric value
+         *
+         * @param colIndex Feature / column of above matrix
          */
         inline Eigen::RowVectorXi sortedColumnIndices(long colIndex) const {
             return _sortedMatrixIdx.col(colIndex);

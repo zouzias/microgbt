@@ -1,7 +1,5 @@
 #pragma once
 #include "splitter.h"
-#include "../utils.h"
-
 
 namespace microgbt {
 
@@ -11,22 +9,6 @@ namespace microgbt {
     class NumericalSplitter: public Splitter {
 
         double _lambda;
-
-       /**
-       * Sort the sample indices for a given feature index 'feature_id'.
-       *
-       * It returns sorted indices depending on type of feature (categorical or numeric):
-       * Categorical feature: performs mean target encoding
-       * Numerical feature: natural sort on numeric value
-       *
-       * @param trainSet Input design matrix and targets as Dataset
-       * @param featureId Feature / column of above matrix
-       */
-        static Eigen::RowVectorXi sortSamplesByFeature(const Dataset &trainSet,
-                                                       int featureId) {
-
-            return trainSet.sortedColumnIndices(featureId);
-        }
 
         /**
         * Returns objective value for a given gradient, hessian and lambda value
@@ -75,11 +57,10 @@ namespace microgbt {
                                        int featureId) const {
 
             // Sort the feature by value and return permutation of indices (i.e., argsort)
-            Eigen::RowVectorXi sortedInstanceIds = sortSamplesByFeature(dataset, featureId);
+            const Eigen::RowVectorXi& sortedInstanceIds = dataset.sortedColumnIndices(featureId);
 
             // Cummulative sum of gradients and Hessian
-            Vector cum_sum_G(dataset.nRows());
-            Vector cum_sum_H(dataset.nRows());
+            Vector cum_sum_G(dataset.nRows()), cum_sum_H(dataset.nRows());
             double cum_sum_g = 0.0, cum_sum_h = 0.0;
             for (size_t i = 0 ; i < dataset.nRows(); i++) {
                 size_t idx = sortedInstanceIds[i];

@@ -13,11 +13,9 @@
 namespace microgbt {
 
     /**
-     * Gradient Boosting Tree
+     * Gradient Boosting Trees
      */
     class GBT {
-
-    private:
 
         int _maxDepth, _metricName;
         double _lambda, _gamma, _minSplitGain, _learningRate, _minTreeSize, _shrinkageRate;
@@ -26,7 +24,7 @@ namespace microgbt {
         std::unique_ptr<Metric> _metric;
 
         /**
-         * Return a single decision tree given training data, gradient, hession and shrinkage rate
+         * Return a single decision/regression tree given training data, gradient, hessian vectors and shrinkage rate
          *
          * @param trainSet
          * @param gradient
@@ -35,8 +33,6 @@ namespace microgbt {
          */
         Tree buildTree(const Dataset &trainSet, const Vector& previousPreds, const Vector &gradient,
                 const Vector &hessian, double shrinkageRate) const {
-
-
             Tree tree = Tree(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
             tree.build(trainSet, previousPreds, gradient, hessian, shrinkageRate);
             return tree;
@@ -100,11 +96,9 @@ namespace microgbt {
         void trainPython(const MatrixType& trainX, const Vector& trainY,
                 const MatrixType& validX, const Vector& validY,
                 int numBoostRound, int earlyStoppingRounds) {
-            Dataset trainSet(trainX, trainY);
-            Dataset validSet(validX, validY);
 
+            Dataset trainSet(trainX, trainY), validSet(validX, validY);
             train(trainSet, validSet, numBoostRound, earlyStoppingRounds);
-
         }
 
         /**
@@ -118,8 +112,7 @@ namespace microgbt {
         void train(const Dataset &trainSet, const Dataset &validSet, int numBoostRound, int earlyStoppingRounds) {
 
             long bestIteration = 0;
-            double learningRate = _shrinkageRate;
-            double bestValidationLoss = std::numeric_limits<double>::max();
+            double learningRate = _shrinkageRate, bestValidationLoss = std::numeric_limits<double>::max();
 
             // For each iteration, grow an additional tree
             for (long iterCount = 0; iterCount < numBoostRound; iterCount++) {
@@ -198,7 +191,7 @@ namespace microgbt {
          */
         double sumScore(const Eigen::RowVectorXd &x, long numIterations) const {
             long double score = 0.0;
-            numIterations =  (numIterations == 0) ? (long)_trees.size() : numIterations;
+            numIterations = (numIterations == 0) ? (long)_trees.size() : numIterations;
             int limit = 0;
             for (auto &tree: _trees) {
                 if (limit < numIterations) {
@@ -213,8 +206,7 @@ namespace microgbt {
         }
 
         Vector predictDataset(const Dataset &trainSet) const {
-            size_t numSamples = trainSet.nRows();
-            size_t numTrees = _trees.size();
+            size_t numSamples = trainSet.nRows(), numTrees = _trees.size();
             Vector scores(numSamples);
             for (size_t i = 0; i < numSamples; i++) {
                 scores[i] = predict(trainSet.row(i), numTrees);

@@ -5,7 +5,38 @@
 
 # microGBT
 
-microGBT is a minimalistic ([680 LOC](NOTES.md)) Gradient Boosting Trees implementation in C++11 following [xgboost's paper](https://arxiv.org/abs/1603.02754), i.e., the tree building process is based on the gradient and Hessian vectors.
+microGBT is a minimalistic ([650 LOC](NOTES.md)) Gradient Boosting Trees implementation in C++11 following [xgboost's paper](https://arxiv.org/abs/1603.02754), i.e., the tree building process is based on the gradient and Hessian vectors (Newton-Raphson method).
+
+A minimalist Python API is available using [pybind11](https://github.com/pybind/pybind11). To use it,
+
+```python
+import microgbtpy
+
+params = {
+    "gamma": 0.1,
+    "lambda": 1.0,
+    "max_depth": 4.0,
+    "shrinkage_rate": 1.0,
+    "min_split_gain": 0.1,
+    "learning_rate": 0.1,
+    "min_tree_size": 3,
+    "num_boosting_rounds": 10000.0,
+    "metric": 0.0
+}
+
+gbt = microgbtpy.GBT(params)
+
+# Training
+gbt.train(X_train, y_train, X_valid, y_valid, num_iters, early_stopping_rounds)
+
+# Predict
+y_pred = gbt.predict(x, gbt.best_iteration())
+```
+## Goals
+
+The main goal of the project is to be educational and to provide a minimalistic codebase to allow experimentation with Gradient Boosting Trees.
+
+## Features
 
 Currently, the following loss functions are supported:
 * Logistic loss for binary classification, `logloss.h`
@@ -13,7 +44,6 @@ Currently, the following loss functions are supported:
 
 Set the parameter `metric` to 0.0 and 1.0 for logistic regression and RMSE, respectively.
 
-A minimalist Python API is available using [pybind11](https://github.com/pybind/pybind11).
 
 ## Development
 

@@ -11,7 +11,6 @@
 
 #include "../dataset.h"
 #include "split_info.h"
-#include "../utils.h"
 #include "numerical_splliter.h"
 
 
@@ -25,15 +24,13 @@ namespace microgbt {
         int _maxDepth;
         double _lambda, _minSplitGain, _minTreeSize;
         bool isLeaf = false;
-        std::unique_ptr<TreeNode> leftSubTree;
-        std::unique_ptr<TreeNode> rightSubTree;
+        std::unique_ptr<TreeNode> leftSubTree, rightSubTree;
         long splitFeatureIndex;
 
         /**
          * Numeric value on which a binary tree split took place
          */
-        double splitNumericValue;
-        double weight = 0.0;
+        double splitNumericValue, weight = 0.0;
 
         template<typename T, typename... Args>
         std::unique_ptr<T> make_unique(Args&&... args)
@@ -43,7 +40,7 @@ namespace microgbt {
 
     public:
 
-        TreeNode(double lambda, double minSplitGain, double minTreeSize, int maxDepth){
+        explicit TreeNode(double lambda, double minSplitGain, double minTreeSize, int maxDepth){
             _lambda = lambda;
             _minSplitGain = minSplitGain;
             _maxDepth = maxDepth;
@@ -63,8 +60,8 @@ namespace microgbt {
           */
         inline double calc_leaf_weight(const Vector &gradient,
                                        const Vector &hessian) const {
-            return - par_simd_accumulate(gradient)
-                   / (par_simd_accumulate(hessian) + _lambda);
+            return - std::accumulate(gradient.begin(), gradient.end(), 0.0)
+                   / (std::accumulate(hessian.begin(), hessian.end(), 0.0) + _lambda);
         }
 
 

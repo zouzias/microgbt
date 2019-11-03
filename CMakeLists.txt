@@ -69,6 +69,5 @@ add_subdirectory(pybind11)
 
 pybind11_add_module(microgbtpy src/metrics/metric.h src/trees/tree.h src/GBT.h src/dataset.h src/metrics/logloss.h
         src/trees/treenode.h src/trees/split_info.h
-        src/utils.h
         src/python_api.cpp)
 #########################
