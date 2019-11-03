@@ -205,8 +205,9 @@ namespace microgbt {
                     score += tree.score(x);
                     limit++;
                 }
-                else
+                else {
                     break;
+                }
             }
 
             return (double)score;

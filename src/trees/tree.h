@@ -37,22 +37,6 @@ namespace microgbt {
         std::shared_ptr<TreeNode> root;
 
         std::vector<std::shared_ptr<TreeNode>> nodes;
-
-        /**
-         * Sort the sample indices for a given feature index 'feature_id'.
-         *
-         * It returns sorted indices depending on type of feature (categorical or numeric):
-         * Numerical feature: natural sort on numeric value
-         *
-         * @param dataset Input design matrix and targets as Dataset
-         * @param featureId Feature / column of dataset
-         * @return A permutation object corresponding to the sorted samples of feature featureId
-         */
-        const Permutation& sortSamplesByFeature(const Dataset &dataset,
-                                                       long featureId) const {
-            return dataset.sortedColumnIndices(featureId);
-        }
-
     public:
 
         Tree(double lambda, double minSplitGain, size_t minTreeSize, int maxDepth):
@@ -129,7 +113,7 @@ namespace microgbt {
                     // Clean the list of candidate left indices per leaf node
                     classList.zero();
 
-                    Permutation perm = sortSamplesByFeature(dataset, featureIdx);
+                    const Permutation& perm = dataset.sortedColumnIndices(featureIdx);
 
                     // Go over all pre-sorted sample indices: 'sampleIdx'
                     for (NodeId i = 0; i < numSamples; i++) {
@@ -177,7 +161,7 @@ namespace microgbt {
 
                     NodeId nodeId = node->getNodeId();
                     std::vector<long> leftIndices(leftSize);
-                    const Permutation& perm = sortSamplesByFeature(dataset, featureIdx);
+                    const Permutation& perm = dataset.sortedColumnIndices(featureIdx);
 
                     // Go over all pre-sorted sample indices: 'sampleIdx'
                     long idx = 0;

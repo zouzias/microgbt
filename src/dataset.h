@@ -19,6 +19,7 @@ namespace microgbt {
     * to be predicted
     */
     class Dataset {
+        protected:
 
         /**
          * Design matrix, each row correspond to a sample; each column corresponds to a feature
@@ -41,9 +42,8 @@ namespace microgbt {
 
             // initialize original index locations
             Eigen::VectorXd v = col(colIndex);
-            unsigned int n = v.size();
+            VectorT idx(v.size());
 
-            VectorT idx(n);
             // idx contains now 0,1,...,v.size() - 1
             std::iota(idx.begin(), idx.end(), 0);
 
@@ -79,7 +79,7 @@ namespace microgbt {
         }
 
         inline long numFeatures() const {
-            return this->_X->cols();
+            return _X->cols();
         }
 
         inline std::shared_ptr<MatrixType> X() const {
@@ -99,12 +99,16 @@ namespace microgbt {
         }
 
         /**
-         * Returns a sorted vector of indices corresponding to a column
-         * @param colIndex Index of column
-         * @return
-         */
-        inline const Permutation& sortedColumnIndices(long colIndex) const {
-            return _sortedMatrixIdx[colIndex];
+       * Sort the sample indices for a given feature index 'feature_id'.
+       *
+       * It returns sorted indices depending on type of feature (categorical or numeric):
+       * Numerical feature: natural sort on numeric value
+       *
+       * @param featureId Feature / column of dataset
+       * @return A permutation object corresponding to the sorted samples of feature featureId
+       */
+        inline const Permutation& sortedColumnIndices(long featureId) const {
+            return _sortedMatrixIdx[featureId];
         }
     };
 }

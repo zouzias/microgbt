@@ -59,16 +59,13 @@ namespace microgbt {
             _bestGain = std::numeric_limits<double>::lowest();
             _bestSplitNumericValue = std::numeric_limits<double>::lowest();
             _bestSplitFeatureId = -1;
-            _gradientSum = 0.0;
-            _hessianSum = 0.0;
-            _leftGradientSum = 0.0;
-            _leftHessianSum = 0.0;
+            _gradientSum = 0.0, _hessianSum = 0.0;
+            _leftGradientSum = 0.0, _leftHessianSum = 0.0;
             _weight = 0.0;
             _leftSize = 0;
             _size = nodeSize;
             _isLeaf = true;
-            leftSubTree = nullptr;
-            rightSubTree = nullptr;
+            leftSubTree = nullptr, rightSubTree = nullptr;
         }
 
         void markInnerNode() {

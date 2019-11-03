@@ -9,7 +9,9 @@ namespace microgbt {
     /**
      * ClassList that keeps track of left subtree sizes over all active tree nodes
      *
-     * active is a tree node that could be split further
+     * active is a tree node that could be split further.
+     *
+     * References: SLIQ: A fast scalable classifier for data mining (https://doi.org/10.1007/BFb0014141)
      */
     class ClassList {
 
@@ -36,9 +38,8 @@ namespace microgbt {
         }
 
         void zero() {
-            for (auto& node: _leftCandidateSamples) {
+            for (auto& node: _leftCandidateSamples)
                 node.second = 0;
-            }
         }
 
         NodeId nodeAt(long index) const {

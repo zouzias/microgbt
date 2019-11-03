@@ -26,9 +26,8 @@ namespace microgbt {
         }
 
         void zeroAllPartialSums() {
-            for( NodeId i = 0; i< _maxNumNodes; i++) {
+            for( NodeId i = 0; i< _maxNumNodes; i++)
                 _partialSums[i] = GradientHessianPair{0.0, 0.0};
-            }
         }
 
         // Get partial Gradient/Hessian sums per tree node
