@@ -225,12 +225,6 @@ namespace microgbt {
                     }
                 }
             }
-
-            // FIXME: remove those
-            // std::string output = toDigraph();
-            // stdout the tree structure
-            // std::cout << output;
-
         }
 
         /**
@@ -241,21 +235,6 @@ namespace microgbt {
          */
         double score(const Eigen::RowVectorXd &sample) const {
             return root->score(sample);
-        }
-
-        /**
-         * Returns the tree represented as directed graph using dot notation
-         *
-         * @return
-         */
-        std::string toDigraph() const {
-            std::stringstream ss;
-            ss << "digraph {" << std::endl;
-            for (auto& line: root->toDigraph()) {
-                ss << "\t" << line << ";" << std::endl;
-            }
-            ss << "}" << std::endl;
-            return ss.str();
         }
     };
 } // namespace microgbt

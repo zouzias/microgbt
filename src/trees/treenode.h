@@ -273,46 +273,5 @@ namespace microgbt {
                 return rightSubTree->score(sample);
             }
         }
-
-        /**
-         * Returns a list of string containing all subtree information in DOT (a graph description language)
-         *
-         * See: https://en.wikipedia.org/wiki/DOT_(graph_description_language)
-         * @return
-         */
-        std::vector<std::string> toDigraph() const {
-            std::vector<std::string> output;
-            if (isLeaf()) {
-                return output;
-            }
-
-            NodeId id = this->getNodeId();
-            NodeId left = this->getLeftSubTreeId();
-            output.push_back(std::to_string(id) + " [label=\"" + print() + "\"]");
-            output.push_back(std::to_string(id) + " -> " + std::to_string(left));
-
-            NodeId right = this->getRightSubTreeId();
-            output.push_back(std::to_string(id) + " -> " + std::to_string(right));
-
-
-            auto leftCollection = leftSubTree->toDigraph();
-            auto rightCollection = rightSubTree->toDigraph();
-            std::copy(begin(leftCollection), end(leftCollection), std::back_inserter(output));
-            std::copy(begin(rightCollection), end(rightCollection), std::back_inserter(output));
-
-            return output;
-        }
-
-        std::string print() const {
-            std::stringstream ss;
-            ss << " | Node id: " << getNodeId();
-            ss << " | Best Gain: " << bestGain();
-            ss << " | Weight: " << calc_leaf_weight();
-            ss << " | Left size: " << getLeftSize();
-            ss  << " | S: " << getSize();
-            ss << " | G sum: " << getGradientSum();
-            ss << " | H sum: " << getHessianSum();
-            return ss.str();
-        }
     };
 } // namespace microgbt
