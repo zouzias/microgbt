@@ -10,15 +10,15 @@ namespace microgbt {
     using GradientHessianPair = std::pair<double, double>;
 
     /**
-    * Maintains state (partial gradient / hessian sums) over tree building process
+    * TreeBuilderState maintains state (partial gradient / hessian sums) over tree building process
     */
     class TreeBuilderState {
 
+        /** Maximum number of nodes */
         long _maxNumNodes;
 
-        /** Keep track of partial Gradient/Hessian sums per tree node */
+        /** Keeps track of partial Gradient/Hessian sums for each tree node */
         std::map <NodeId, GradientHessianPair> _partialSums;
-
 
     public:
         explicit TreeBuilderState(long maxNumNodes) {

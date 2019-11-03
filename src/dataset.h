@@ -19,7 +19,6 @@ namespace microgbt {
     * to be predicted
     */
     class Dataset {
-    private:
 
         /**
          * Design matrix, each row correspond to a sample; each column corresponds to a feature

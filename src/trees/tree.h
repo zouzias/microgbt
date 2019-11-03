@@ -20,10 +20,8 @@ namespace microgbt {
     using NodeId = long;
     using GradientHessianPair = std::pair<double, double>;
 
-
-
     /**
-     * A binary decision tree that contains information regarding Gradient Boosting a la xgboost (gradients/hessians)
+     * A binary tree that contains information regarding Gradient Boosting a la xgboost (gradients / hessians information)
      */
     class Tree {
 
@@ -44,15 +42,14 @@ namespace microgbt {
          * Sort the sample indices for a given feature index 'feature_id'.
          *
          * It returns sorted indices depending on type of feature (categorical or numeric):
-         * Categorical feature: performs mean target encoding
          * Numerical feature: natural sort on numeric value
          *
          * @param dataset Input design matrix and targets as Dataset
          * @param featureId Feature / column of dataset
+         * @return A permutation object corresponding to the sorted samples of feature featureId
          */
         const Permutation& sortSamplesByFeature(const Dataset &dataset,
-                                                       int featureId) const {
-
+                                                       long featureId) const {
             return dataset.sortedColumnIndices(featureId);
         }
 
@@ -96,7 +93,7 @@ namespace microgbt {
             root = newTreeNode(numSamples, numSamples);
 
             // SLIQ classlist
-            ClassList classList(numSamples, pow(2, _maxDepth));
+            ClassList classList(numSamples);
 
             // Sum the gradients / hessians over all samples
             double G = std::accumulate(gradient.begin(), gradient.end(), 0.0);
@@ -116,9 +113,6 @@ namespace microgbt {
                 for (auto & node : nodes){
                     if (node->isLeaf()) {
                         classList.zero(node->getNodeId());
-                    }
-                    else {
-                        classList.erase(node->getNodeId());
                     }
                 }
 
@@ -154,7 +148,7 @@ namespace microgbt {
                         double gain = nodes[leafId]->calc_split_gain(partialSums.first, partialSums.second);
 
                         // Assign sample with index sampleIdx to class list
-                        classList.appendSampleToLeftSubTree(leafId, sampleIdx);
+                        classList.increaseLeftSizeByNode(leafId);
 
                         // If gain is better, mark it
                         if (gain > nodes[leafId]->bestGain()
@@ -163,13 +157,39 @@ namespace microgbt {
                                  && classList.getRightSize(leafId) > _minTreeSize
                                 ) {
                             nodes[leafId]->updateWeight(shrinkage);
-                            nodes[leafId]->setLeftSampleIds(classList.getLeft(leafId));
+                            nodes[leafId]->setLeftSize(classList.getLeftSize(leafId));
                             nodes[leafId]->setBestSplitValue(sortedFeatureValue);
                             nodes[leafId]->setBestGain(gain);
                             nodes[leafId]->setBestSplitFeatureId(featureIdx);
                             nodes[leafId]->setLeftGradientSum(partialSums.first);
                             nodes[leafId]->setLeftHessianSum(partialSums.second);
                         }
+                    }
+                }
+
+                // For each node, go and reconstruct the left sample indices
+                for (auto& node: nodes) {
+                    long featureIdx = node->getBestSplitFeatureId();
+                    long leftSize = node->getLeftSize();
+                    if (leftSize == 0) {
+                        continue;
+                    }
+
+                    NodeId nodeId = node->getNodeId();
+                    std::vector<long> leftIndices(leftSize);
+                    const Permutation& perm = sortSamplesByFeature(dataset, featureIdx);
+
+                    // Go over all pre-sorted sample indices: 'sampleIdx'
+                    long idx = 0;
+                    while( leftSize > 0 ){
+                        size_t sampleIdx = perm(idx);
+                        NodeId classListNodeId = classList.nodeAt(sampleIdx);
+                        if (classListNodeId == nodeId) {
+                            node->setLeftSampleId(sampleIdx);
+                        }
+
+                        idx++;
+                        leftSize--;
                     }
                 }
 

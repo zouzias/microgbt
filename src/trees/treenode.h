@@ -18,7 +18,7 @@
 namespace microgbt {
 
     /**
-     * A node of a tree
+     * A node of a binary tree
      */
     class TreeNode {
 
@@ -30,9 +30,7 @@ namespace microgbt {
         // Feature id on which the best split happened on the current node
         long _bestSplitFeatureId;
 
-        /**
-         * Numeric value on which a binary tree split took place
-         */
+        // Numeric value on which a binary tree split took place
         double _bestSplitNumericValue, _weight = 0;
 
         // Total gradient and Hessian sum at current node
@@ -45,6 +43,9 @@ namespace microgbt {
 
         // Number of samples assigned to current node
         long _size;
+
+        // Size of left sub-tree
+        long _leftSize;
 
         // Set of sample indices that corresponds to left subtree
         std::vector<bool> _leftSampleIds;
@@ -63,6 +64,7 @@ namespace microgbt {
             _leftGradientSum = 0.0;
             _leftHessianSum = 0.0;
             _weight = 0.0;
+            _leftSize = 0;
             _size = nodeSize;
             _isLeaf = true;
             leftSubTree = nullptr;
@@ -89,8 +91,12 @@ namespace microgbt {
             _bestGain = gain;
         }
 
-        void setLeftSampleIds(const std::shared_ptr<std::vector<bool>> &leftSampleIds){
-            std::copy(leftSampleIds->begin(), leftSampleIds->end(), _leftSampleIds.begin());
+        void setLeftSize(long size){
+            _leftSize = size;
+        }
+
+        void setLeftSampleId(long leftSampleId){
+            _leftSampleIds[leftSampleId] = true;
         }
 
         bool isLeftAssigned(size_t sampleId) {
@@ -111,6 +117,10 @@ namespace microgbt {
 
         void setBestSplitFeatureId(long id) {
             _bestSplitFeatureId = id;
+        }
+
+        long getBestSplitFeatureId() const {
+            return _bestSplitFeatureId;
         }
 
         void setWeight(double weight) {
@@ -172,7 +182,7 @@ namespace microgbt {
         }
 
         inline long getLeftSize() const {
-            return std::count(_leftSampleIds.begin(), _leftSampleIds.end(), true);
+            return _leftSize;
         }
 
         inline long getRightSize() const {
