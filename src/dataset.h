@@ -82,10 +82,6 @@ namespace microgbt {
             return _X->cols();
         }
 
-        inline std::shared_ptr<MatrixType> X() const {
-            return _X;
-        }
-
         inline Vector y() const {
             return *_y;
         }

@@ -94,7 +94,7 @@ namespace microgbt {
             for (int depth = 0; depth < _maxDepth ; depth ++) {
                 std::cout << "[Working on depth '" << depth << "']" << std::endl;
 
-                for (auto & node : nodes){
+                for (auto& node : nodes){
                     if (node->isLeaf()) {
                         classList.zero(node->getNodeId());
                     }

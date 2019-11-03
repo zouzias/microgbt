@@ -76,7 +76,7 @@ namespace microgbt {
             _isLeaf = true;
         }
 
-        inline bool isLeaf() const{
+        inline bool isLeaf() const {
             return _isLeaf;
         }
 
@@ -104,12 +104,11 @@ namespace microgbt {
             _leftGradientSum = value;
         }
 
-        void updateWeight(double shrinkage) {
-            _weight = calc_leaf_weight() * shrinkage;
-        }
-
         void setLeftHessianSum(double value) {
             _leftHessianSum = value;
+        }
+        void updateWeight(double shrinkage) {
+            _weight = calc_leaf_weight() * shrinkage;
         }
 
         void setBestSplitFeatureId(long id) {
@@ -161,9 +160,6 @@ namespace microgbt {
         }
 
         inline NodeId getLeftSubTreeId() const {
-            if (leftSubTree == nullptr) {
-                return -1;
-            }
             return leftSubTree->getNodeId();
         }
 
