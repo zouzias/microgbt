@@ -15,13 +15,12 @@ namespace microgbt {
          */
         class SplitInfo {
 
-            private:
-
             Eigen::RowVectorXi _sortedFeatureIndices;
 
             /* Best gain and value (!?) */
             double _bestGain = std::numeric_limits<double>::min(), _bestSplitNumericValue = 0.0;
 
+            // Keep track of best sorted sample index and best feature index
             size_t _bestSortedIndex = -1, _bestFeatureId = -1;
 
             public:
@@ -72,6 +71,15 @@ namespace microgbt {
                         _sortedFeatureIndices.data() + _sortedFeatureIndices.size());
             }
 
+            /**
+             * Split a vector based on a side, i.e., left and right side.
+             *
+             * SplitInfo has the left and right subset of indices corresponding to the left and right subtree, respectively.
+             *
+             * @param vector Input vector to split
+             * @param side Left or right side
+             * @return Subvector of input vector
+             */
             VectorD split(const VectorD &vector, const SplitInfo::Side &side) const {
                 VectorT rowIndices;
                 if (side == SplitInfo::Side::Left)

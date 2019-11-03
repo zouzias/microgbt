@@ -15,7 +15,7 @@
 namespace microgbt {
 
     /**
-     * A Decision Tree with binary splits
+     * A Decision/Regression Tree with binary splits
      */
     class Tree {
     private:
