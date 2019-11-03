@@ -20,10 +20,8 @@ namespace microgbt {
     using NodeId = long;
     using GradientHessianPair = std::pair<double, double>;
 
-
-
     /**
-     * A binary decision tree that contains information regarding Gradient Boosting a la xgboost (gradients/hessians)
+     * A binary tree that contains information regarding Gradient Boosting a la xgboost (gradients / hessians information)
      */
     class Tree {
 
@@ -44,15 +42,14 @@ namespace microgbt {
          * Sort the sample indices for a given feature index 'feature_id'.
          *
          * It returns sorted indices depending on type of feature (categorical or numeric):
-         * Categorical feature: performs mean target encoding
          * Numerical feature: natural sort on numeric value
          *
          * @param dataset Input design matrix and targets as Dataset
          * @param featureId Feature / column of dataset
+         * @return A permutation object corresponding to the sorted samples of feature featureId
          */
         const Permutation& sortSamplesByFeature(const Dataset &dataset,
                                                        long featureId) const {
-
             return dataset.sortedColumnIndices(featureId);
         }
 

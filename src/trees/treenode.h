@@ -18,7 +18,7 @@
 namespace microgbt {
 
     /**
-     * A node of a tree
+     * A node of a binary tree
      */
     class TreeNode {
 
@@ -30,9 +30,7 @@ namespace microgbt {
         // Feature id on which the best split happened on the current node
         long _bestSplitFeatureId;
 
-        /**
-         * Numeric value on which a binary tree split took place
-         */
+        // Numeric value on which a binary tree split took place
         double _bestSplitNumericValue, _weight = 0;
 
         // Total gradient and Hessian sum at current node
@@ -46,6 +44,7 @@ namespace microgbt {
         // Number of samples assigned to current node
         long _size;
 
+        // Size of left sub-tree
         long _leftSize;
 
         // Set of sample indices that corresponds to left subtree
