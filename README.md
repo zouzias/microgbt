@@ -20,7 +20,7 @@ params = {
     "min_split_gain": 0.1,
     "learning_rate": 0.1,
     "min_tree_size": 3,
-    "num_boosting_rounds": 10000.0,
+    "num_boosting_rounds": 100.0,
     "metric": 0.0
 }
 
@@ -34,7 +34,7 @@ y_pred = gbt.predict(x, gbt.best_iteration())
 ```
 ## Goals
 
-The main goal of the project is to be educational and to provide a minimalistic codebase to allow experimentation with Gradient Boosting Trees.
+The main goal of the project is to be educational and provide a minimalistic codebase that allows experimentation with Gradient Boosting Trees.
 
 ## Features
 
