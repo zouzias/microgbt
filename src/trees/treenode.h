@@ -20,17 +20,24 @@ namespace microgbt {
      * A node of a tree
      */
     class TreeNode {
-    private:
-        int _maxDepth;
-        double _lambda, _minSplitGain, _minTreeSize;
-        bool isLeaf = false;
-        std::unique_ptr<TreeNode> leftSubTree, rightSubTree;
-        long splitFeatureIndex;
 
-        /**
-         * Numeric value on which a binary tree split took place
-         */
-        double splitNumericValue, weight = 0.0;
+        // Maximum tree depth
+        int _maxDepth;
+
+        // Regularization parameters
+        double _lambda, _minSplitGain, _minTreeSize;
+
+        // Is the node a leaf?
+        bool _isLeaf;
+
+        // Pointers to left and right subtrees
+        std::unique_ptr<TreeNode> leftSubTree, rightSubTree;
+
+        // Feature index on which the split took place
+        long _splitFeatureIndex;
+
+        // Numeric value on which the binary tree split took place
+        double _splitNumericValue, _weight;
 
         template<typename T, typename... Args>
         std::unique_ptr<T> make_unique(Args&&... args)
@@ -45,17 +52,18 @@ namespace microgbt {
             _minSplitGain = minSplitGain;
             _maxDepth = maxDepth;
             _minTreeSize = minTreeSize;
+            _splitFeatureIndex = -1.0;
+            _isLeaf = false;
+            _splitNumericValue = std::numeric_limits<double>::min();
+            _weight = 0.0;
         }
 
-        /**
-
-         */
          /**
           * Return  the optimal weight of a leaf node.
           * (Refer to Eq5 of Reference[1])
           *
-          * @param gradient
-          * @param hessian
+          * @param gradient Gradient vector
+          * @param hessian Hessian vector
           * @return
           */
         inline double calc_leaf_weight(const Vector &gradient,
@@ -63,7 +71,6 @@ namespace microgbt {
             return - std::accumulate(gradient.begin(), gradient.end(), 0.0)
                    / (std::accumulate(hessian.begin(), hessian.end(), 0.0) + _lambda);
         }
-
 
 
         /**
@@ -78,12 +85,12 @@ namespace microgbt {
          *
          *  (Refer to Algorithm1 of Reference[1])
          *
-         * @param trainSet
+         * @param trainSet Train dataset
          * @param previousPreds
-         * @param gradient
-         * @param hessian
-         * @param shrinkage
-         * @param depth
+         * @param gradient Gradient vector
+         * @param hessian Hessian vector
+         * @param shrinkage Current shrinkage parameter
+         * @param depth Current depth on building process
          */
         void build(const Dataset &trainSet,
                    const Vector &previousPreds,
@@ -94,15 +101,15 @@ namespace microgbt {
 
             // Check if depth is reached
             if (depth > _maxDepth) {
-                this->isLeaf = true;
-                this->weight = this->calc_leaf_weight(gradient, hessian) * shrinkage;
+                this->_isLeaf = true;
+                this->_weight = this->calc_leaf_weight(gradient, hessian) * shrinkage;
                 return;
             }
 
             // Check if # of sample is too small
             if ( trainSet.nRows() <= _minTreeSize) {
-                this->isLeaf = true;
-                this->weight = this->calc_leaf_weight(gradient, hessian) * shrinkage;
+                this->_isLeaf = true;
+                this->_weight = this->calc_leaf_weight(gradient, hessian) * shrinkage;
                 return;
             }
 
@@ -112,15 +119,16 @@ namespace microgbt {
 
             // Check if best gain is less than minimum split gain (threshold)
             if (bestGain.bestGain() < this->_minSplitGain) {
-                this->isLeaf = true;
-                this->weight = this->calc_leaf_weight(gradient, hessian) * shrinkage;
+                this->_isLeaf = true;
+                this->_weight = this->calc_leaf_weight(gradient, hessian) * shrinkage;
                 return;
             }
 
-            this->splitFeatureIndex = bestGain.getBestFeatureId();
-            this->splitNumericValue = bestGain.splitValue();
+            // Update feature index and numeric value of optimal greedy split
+            this->_splitFeatureIndex = bestGain.getBestFeatureId();
+            this->_splitNumericValue = bestGain.splitValue();
 
-
+            // Recurse on left and right subtree
             Dataset leftDataset(trainSet, bestGain, SplitInfo::Side::Left);
             Vector leftGradient = bestGain.split(gradient, SplitInfo::Side::Left);
             Vector leftHessian = bestGain.split(hessian, SplitInfo::Side::Left);
@@ -146,9 +154,9 @@ namespace microgbt {
          * @return
          */
         double score(const Eigen::RowVectorXd &sample) const {
-            if (this->isLeaf) {
-                return this->weight;
-            } else if (sample[this->splitFeatureIndex] < this->splitNumericValue) {
+            if (this->_isLeaf) {
+                return this->_weight;
+            } else if (sample[this->_splitFeatureIndex] < this->_splitNumericValue) {
                 return this->leftSubTree->score(sample);
             } else {
                 return this->rightSubTree->score(sample);

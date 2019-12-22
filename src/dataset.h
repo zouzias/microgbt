@@ -14,21 +14,16 @@ namespace microgbt {
     using SortedMatrixType = Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 
     /**
-    * Represents a machine learning "design matrix" and target vector, (X, y)
+    * Dataset represents a machine learning "design matrix" and target vector, (X, y)
     * where the rows and columns of matrix X represent the samples and features, respectively. y is the target vector
     * to be predicted
     */
     class Dataset {
-    private:
 
-        /**
-         * Design matrix, each row correspond to a sample; each column corresponds to a feature
-         */
+        // Design matrix, each row corresponds to a sample; each column corresponds to a feature
         std::shared_ptr<MatrixType> _X;
 
-        /**
-         * Target vector
-         */
+        // Target vector
         std::shared_ptr<Vector> _y;
 
         SortedMatrixType _sortedMatrixIdx;

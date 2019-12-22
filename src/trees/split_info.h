@@ -15,13 +15,17 @@ namespace microgbt {
          */
         class SplitInfo {
 
+            // Sorted list of feature indices with respect to feature values
             Eigen::RowVectorXi _sortedFeatureIndices;
 
-            /* Best gain and value (!?) */
+            /* Best gain of split and split value on which the best gain is attained */
             double _bestGain = std::numeric_limits<double>::min(), _bestSplitNumericValue = 0.0;
 
-            // Keep track of best sorted sample index and best feature index
-            size_t _bestSortedIndex = -1, _bestFeatureId = -1;
+            // Keep track of best sorted sample index
+            size_t _bestSortedIndex = -1;
+
+            // Feature index on which best gain was attained
+            size_t _bestFeatureId = -1;
 
             public:
 
@@ -78,14 +82,15 @@ namespace microgbt {
              *
              * @param vector Input vector to split
              * @param side Left or right side
-             * @return Subvector of input vector
+             * @return a sub-vector of the input vector based on the split information
              */
             VectorD split(const VectorD &vector, const SplitInfo::Side &side) const {
                 VectorT rowIndices;
-                if (side == SplitInfo::Side::Left)
+                if (side == SplitInfo::Side::Left) {
                     rowIndices = getLeftLocalIds();
-                else
+                } else {
                     rowIndices = getRightLocalIds();
+                }
 
                 VectorD splitVector;
                 std::transform(rowIndices.begin(), rowIndices.end(),

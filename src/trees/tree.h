@@ -15,17 +15,17 @@
 namespace microgbt {
 
     /**
-     * A Decision/Regression Tree with binary splits
+     * A decision / regression tree with binary splits
      */
     class Tree {
-    private:
-        /** Maximum depth of tree */
+
+        // Maximum depth of tree
         int _maxDepth;
 
-        /** Gradient boosting parameters */
+        // Gradient boosting parameters
         double _lambda, _minSplitGain, _minTreeSize;
 
-        /** Root of tree */
+        // Root of tree
         std::shared_ptr<TreeNode> root;
 
     public:
@@ -38,12 +38,12 @@ namespace microgbt {
         }
 
          /**
-          * Recursively (and greedily) build decision tree using 'optimal' binary splits
+          * Recursively (and greedily) build regression tree using 'optimal greedy' binary splits
           * based on gradient & Hessian vectors.
           *
-          * @param train_set Training dataset
-          * @param previousPreds Previous iteration predictions
-          * @param gradient Vector of gradients
+          * @param trainSet Training dataset
+          * @param previousPreds Prediction based on previous trees
+          * @param gradient Gradient vector
           * @param hessian Vector of second derivatives, Hessian
           * @param shrinkage Shrinkage rate
           */

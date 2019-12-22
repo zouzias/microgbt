@@ -8,14 +8,14 @@ namespace microgbt {
      */
     class NumericalSplitter: public Splitter {
 
+        // Regularization parameter of xgboost
         double _lambda;
 
         /**
         * Returns objective value for a given gradient, hessian and lambda value
         *
-        * @param gradient
-        * @param hessian
-        * @param lambd
+        * @param gradient Gradient value
+        * @param hessian Hessian value
         * @return
         */
         constexpr double objective(double gradient, double hessian) const {
@@ -32,10 +32,7 @@ namespace microgbt {
         * @param H Hessian on node before the split applied
         * @param G_l Gradient on left split node
         * @param H_l Hesssian on left split node
-        * @param G_r Gradient on right split node
-        * @param H_r Hesisan on right split node
-        * @param lambd Regularization xgboost parameter, see Eqn. 7 in [1]
-        * @return
+        * @return Gain on split, i.e., reduction on objective value
         */
         constexpr double calc_split_gain(double G, double H, double G_l, double H_l) const {
             return objective(G_l, H_l) + objective(G - G_l, H - H_l) - objective(G, H) / 2.0; // TODO: minus \gamma
@@ -44,12 +41,12 @@ namespace microgbt {
         /**
         * Returns an optimal binary split for a given feature index of a Dataset.
         *
-        * @param dataset
+        * @param dataset Input dataset
         * @param previousPreds
-        * @param gradient
-        * @param hessian
-        * @param featureId
-        * @return
+        * @param gradient Gradient vector
+        * @param hessian Hessian vector
+        * @param featureId Feature index
+        * @return Best split over all possible splits of feature with featureId
         */
         SplitInfo optimumGainByFeature(const Dataset &dataset,
                                        const Vector &gradient,
@@ -86,13 +83,10 @@ namespace microgbt {
             return SplitInfo(sortedInstanceIds, bestGain, bestSplitNumericValue, bestSortedIndex);
         }
 
-
-
     public:
         explicit NumericalSplitter(double lambda) {
             _lambda = lambda;
         }
-
 
         SplitInfo findBestSplit(const Dataset &trainSet,
                                 const Vector &gradient,

@@ -26,10 +26,10 @@ namespace microgbt {
         /**
          * Return a single decision/regression tree given training data, gradient, hessian vectors and shrinkage rate
          *
-         * @param trainSet
-         * @param gradient
-         * @param hessian
-         * @param shrinkageRate
+         * @param trainSet Input train dataset (features matrix and target vector)
+         * @param gradient Gradient vector: each coordinate corresponds to sample (row index)
+         * @param hessian Hessian vector: each coordinate corresponds to sample (row index)
+         * @param shrinkageRate Shrinkage rate
          */
         Tree buildTree(const Dataset &trainSet, const Vector& previousPreds, const Vector &gradient,
                 const Vector &hessian, double shrinkageRate) const {
@@ -85,13 +85,14 @@ namespace microgbt {
         }
 
         /**
+         * Python entry point to train GBT
          *
-         * @param trainX
-         * @param trainY
-         * @param validX
-         * @param validY
-         * @param numBoostRound
-         * @param earlyStoppingRounds
+         * @param trainX Training feature matrix
+         * @param trainY Training target vector
+         * @param validX Validation feature matrix
+         * @param validY Validation target vector
+         * @param numBoostRound Number of boosting rounds (# of trees)
+         * @param earlyStoppingRounds number of rounds to consider for early stopping, i.e., if there is not improvement
          */
         void trainPython(const MatrixType& trainX, const Vector& trainY,
                 const MatrixType& validX, const Vector& validY,
@@ -107,7 +108,7 @@ namespace microgbt {
          * @param trainSet Input training dataset
          * @param validSet Input validation dataset
          * @param numBoostRound  Number of boosting rounds
-         * @param earlyStoppingRounds Early stopping criterion
+         * @param earlyStoppingRounds number of rounds to consider for early stopping, i.e., if there is not improvement
          */
         void train(const Dataset &trainSet, const Dataset &validSet, int numBoostRound, int earlyStoppingRounds) {
 
@@ -170,9 +171,9 @@ namespace microgbt {
         }
 
         /**
-         * Returns the prediction of a sample
+         * Returns the prediction of a sample vector (vector of features)
          *
-         * @param x Input sample
+         * @param x Input sample vector (i-th coordinate corresponds to i-th feature)
          * @param numIterations Number of iterations to use for prediction. This is used in case that early stopping took place
          * @return Prediction of input sample
          */
