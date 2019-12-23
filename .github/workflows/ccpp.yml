@@ -10,9 +10,9 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Install gcc deps
-      run: add-apt-repository ppa:ubuntu-toolchain-r/test -y
+      run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
     - name: Install ubuntu deps
-      run: apt-get gcc g++ cmake libeigen3-dev git wget python-dev valgrind
+      run: sudo apt-get gcc g++ cmake libeigen3-dev git wget python-dev valgrind
     - name: build
       run: ./runBuild.sh
     - name: test
