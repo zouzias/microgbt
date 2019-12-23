@@ -14,7 +14,7 @@ jobs:
     - name: Install ubuntu deps
       run: sudo apt-get install -q gcc g++ cmake libeigen3-dev git wget python-dev valgrind
     - name: Install Python deps
-      run: pip install --user cpp-coveralls setuptools wheels
+      run: pip install --user cpp-coveralls setuptools wheel
     - name: build
       run: ./runBuild.sh
     - name: test
