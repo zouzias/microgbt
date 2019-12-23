@@ -13,6 +13,8 @@ jobs:
       run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
     - name: Install ubuntu deps
       run: sudo apt-get install -q gcc g++ cmake libeigen3-dev git wget python-dev valgrind
+    - name: Install Python deps
+      run: pip install --user cpp-coveralls
     - name: build
       run: ./runBuild.sh
     - name: test
