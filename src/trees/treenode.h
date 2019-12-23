@@ -17,7 +17,7 @@
 namespace microgbt {
 
     /**
-     * A node of a tree
+     * A node of a regression tree of GBT
      */
     class TreeNode {
 
