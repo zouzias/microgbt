@@ -19,7 +19,7 @@ namespace microgbt {
 
         int _maxDepth, _metricName;
         double _lambda, _gamma, _minSplitGain, _learningRate, _minTreeSize, _shrinkageRate;
-        long _bestIteration;
+        long _bestIteration = 0;
         std::vector<Tree> _trees;
         std::unique_ptr<Metric> _metric;
 
@@ -65,6 +65,8 @@ namespace microgbt {
         inline double lambda() const { return _lambda; }
 
         inline double minSplitGain() const { return _minSplitGain; }
+
+        inline double gamma() const { return _gamma; }
 
         inline double shrinkageRate() const { return _shrinkageRate; }
 

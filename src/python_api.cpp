@@ -15,6 +15,7 @@ py::class_<microgbt::GBT> gbt(m, "GBT");
 // Common methods
 gbt.def(py::init<std::map<std::string, double> >())
         .def("max_depth", &microgbt::GBT::maxDepth)
+        .def("gamma", &microgbt::GBT::gamma)
         .def("min_split_gain", &microgbt::GBT::minSplitGain)
         .def("learning_rate", &microgbt::GBT::getLearningRate)
         .def("get_lambda", &microgbt::GBT::lambda)
@@ -47,6 +48,8 @@ gbt.def("__repr__",
                      repr += std::to_string(a.minSplitGain());
                      repr += ",lambda:";
                      repr += std::to_string(a.lambda());
+                     repr += ",gamma:";
+                     repr += std::to_string(a.gamma());
                      repr += "]";
                      return repr;
                  }

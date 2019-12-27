@@ -1,3 +1,4 @@
+import os
 from setuptools import setup, Extension
 from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 
@@ -10,6 +11,16 @@ class BdistWheel(_bdist_wheel):
         _bdist_wheel.finalize_options(self)
         self.root_is_pure = False
 
+
+def get_requirements(env):
+    """Get requirements from requirements.txt file"""
+    script_dir = os.path.dirname(__file__)
+    with open(os.path.join(script_dir, u"requirements-{}.txt".format(env))) as fp:
+        return [x.strip() for x in fp.read().split("\n") if not x.startswith("#")]
+
+
+test_requirements = get_requirements("test")
+setup_requirements = ['pytest-runner']
 
 setup(
     name="microgbtpy",
@@ -29,6 +40,9 @@ setup(
     cmdclass={'bdist_wheel': BdistWheel},
     include_package_data=True,
     keywords="gradient boosting trees",
+    setup_requires=setup_requirements,
+    tests_requires=test_requirements,
+    test_suite='tests',
     zip_safe=False,
     packages=[""],
     package_dir={"": "."},

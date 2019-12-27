@@ -16,4 +16,4 @@ pushd build || exit
 cmake ..
 popd || exit
 
-./runMake.sh
+./dev-scripts/runMake.sh

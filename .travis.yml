@@ -12,11 +12,13 @@ before_install:
 
 script:
   - mkdir build
-  - cd build
+  - pushd build
   - cmake ..
   - cmake --build .
   - valgrind --leak-check=full --track-fds=yes --track-origins=yes --leak-check=full --show-leak-kinds=all --error-exitcode=1 ./bin/unit_tests
   - ./bin/unit_tests
+  - popd
+  - pushd python-package && pytest && popd
 
 after_success:
   - coveralls --include src --include include --gcov-options '\-lp' --root .. --build-root .;

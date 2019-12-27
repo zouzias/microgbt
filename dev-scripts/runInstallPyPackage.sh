@@ -12,8 +12,3 @@ pushd ./python-package/
 pip3 install sklearn pandas
 pip3 install -U .
 popd
-
-# Run titanic example
-pushd ./examples/
-./test-titanic.py
-popd
