@@ -29,16 +29,16 @@ namespace microgbt {
         double _lambda, _minSplitGain, _minTreeSize;
 
         // Is the node a leaf?
-        bool _isLeaf;
+        bool _isLeaf = false;
 
         // Pointers to left and right subtrees
         std::unique_ptr<TreeNode> leftSubTree, rightSubTree;
 
         // Feature index on which the split took place
-        long _splitFeatureIndex;
+        long _splitFeatureIndex = -1;
 
         // Numeric value on which the binary tree split took place
-        double _splitNumericValue, _weight;
+        double _splitNumericValue = std::numeric_limits<double>::min(), _weight = 0.0;
 
         template<typename T, typename... Args>
         std::unique_ptr<T> make_unique(Args&&... args)
@@ -51,12 +51,12 @@ namespace microgbt {
         explicit TreeNode(double lambda, double minSplitGain, double minTreeSize, int maxDepth){
             _lambda = lambda;
             _minSplitGain = minSplitGain;
-            _maxDepth = maxDepth;
             _minTreeSize = minTreeSize;
             _splitFeatureIndex = -1;
             _isLeaf = false;
             _splitNumericValue = std::numeric_limits<double>::min();
             _weight = 0.0;
+            _maxDepth = maxDepth;
         }
 
          /**
