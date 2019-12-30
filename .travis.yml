@@ -6,7 +6,7 @@ before_install:
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
   - sudo apt-get update -q
   - sudo apt-get install -q gcc g++ cmake libeigen3-dev git wget python-dev valgrind
-  - travis_wait pip install --user cpp-coveralls
+  - travis_wait pip install --user cpp-coveralls pytest
   - git submodule add -f https://github.com/pybind/pybind11.git # add pybind11 submodule
   - git submodule update --init --recursive
 
