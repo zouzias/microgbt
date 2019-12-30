@@ -16,7 +16,7 @@ jobs:
     - name: Install Python deps
       run: pip install --user cpp-coveralls setuptools wheel
     - name: build
-      run: ./runBuild.sh
+      run: ./dev-scripts/runBuild.sh
     - name: test
       run: cd build && ./bin/unit_tests
 
