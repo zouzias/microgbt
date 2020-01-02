@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  microgbt:
+    image: docker.io/zouzias/microgbt:0.0.1
+    build:
+      dockerfile: docker/Dockerfile
+      context: .
+    volumes:
+      - .:/develop

@@ -45,11 +45,13 @@ Currently, the following loss functions are supported:
 Set the parameter `metric` to 0.0 and 1.0 for logistic regression and RMSE, respectively.
 
 
-## Development
+## Development (docker)
 
 ```bash
 git clone https://github.com/zouzias/microgbt.git
 cd microgbt
+docker-compose build microgbt
+docker-compose run microgbt
 ./runBuild
 
 ```
