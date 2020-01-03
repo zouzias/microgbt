@@ -53,13 +53,15 @@ namespace microgbt {
                                        const Vector &hessian,
                                        int featureId) const {
 
+            long n = static_cast<long>(dataset.nRows());
+
             // Sort the feature by value and return permutation of indices (i.e., argsort)
             const Eigen::RowVectorXi& sortedInstanceIds = dataset.sortedColumnIndices(featureId);
 
             // Cummulative sum of gradients and Hessian
-            Vector cum_sum_G(dataset.nRows()), cum_sum_H(dataset.nRows());
+            Vector cum_sum_G(n), cum_sum_H(n);
             double cum_sum_g = 0.0, cum_sum_h = 0.0;
-            for (size_t i = 0 ; i < dataset.nRows(); i++) {
+            for (long i = 0 ; i < n; i++) {
                 size_t idx = sortedInstanceIds[i];
                 cum_sum_g += gradient[idx];
                 cum_sum_h += hessian[idx];
@@ -68,15 +70,16 @@ namespace microgbt {
             }
 
             // For each feature, compute split gain and keep the split index with maximum gain
-            Vector gainPerOrderedSampleIndex(dataset.nRows());
-            for (size_t i = 0 ; i < dataset.nRows(); i++){
-                gainPerOrderedSampleIndex[i] = calc_split_gain(cum_sum_g, cum_sum_h, cum_sum_G[i], cum_sum_H[i]);
+            double bestGain = 0.0;
+            long bestGainIndex = 0;
+            for (long i = 0 ; i < n; i++){
+                double currentGain = calc_split_gain(cum_sum_g, cum_sum_h, cum_sum_G[i], cum_sum_H[i]);
+                if (bestGain < currentGain) {
+                    bestGain = currentGain;
+                    bestGainIndex = i;
+                }
             }
 
-            long bestGainIndex =
-                    std::max_element(gainPerOrderedSampleIndex.begin(), gainPerOrderedSampleIndex.end())
-                    - gainPerOrderedSampleIndex.begin();
-            double bestGain = gainPerOrderedSampleIndex[bestGainIndex];
             double bestSplitNumericValue = dataset.row(sortedInstanceIds[bestGainIndex])[featureId];
             size_t bestSortedIndex = bestGainIndex + 1;
 
