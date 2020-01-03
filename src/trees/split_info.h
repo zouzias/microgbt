@@ -6,7 +6,7 @@
 
 namespace microgbt {
 
-        using VectorD = std::vector<double>;
+        using VectorD = Eigen::RowVectorXf;
         using VectorT = std::vector<size_t>;
 
         /**
@@ -92,12 +92,10 @@ namespace microgbt {
                     rowIndices = getRightLocalIds();
                 }
 
-                VectorD splitVector;
-                std::transform(rowIndices.begin(), rowIndices.end(),
-                        std::back_inserter(splitVector),
-                        [&vector](size_t rowIndex){
-                    return vector[rowIndex];
-                });
+                VectorD splitVector(rowIndices.size());
+                for( size_t i = 0 ; i < rowIndices.size(); i++) {
+                    splitVector[i] = vector[rowIndices[i]];
+                }
 
                 return splitVector;
             }

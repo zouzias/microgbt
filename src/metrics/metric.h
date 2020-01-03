@@ -5,7 +5,7 @@
 
 namespace microgbt {
 
-    using Vector = std::vector<double>;
+    using Vector = Eigen::RowVectorXf;
 
     /**
      * A generic metric that is defined by:

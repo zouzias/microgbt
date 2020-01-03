@@ -43,11 +43,8 @@ TEST(LogLoss, LogLossClipLowerUnderFlow)
 TEST(LogLoss, LogLossGradient)
 {
     LogLoss logloss;
-    Vector preds = Vector(10);
-    Vector targets = Vector(10);
-
-    std::fill(preds.begin(), preds.end(), 100.0);
-    std::fill(targets.begin(), targets.end(), 99.0);
+    Vector preds = Vector::Constant(10, 100.0);
+    Vector targets = Vector::Constant(10, 99.0);
 
     Vector grads = logloss.gradients(preds, targets);
     ASSERT_EQ(grads.size(), preds.size());
@@ -57,9 +54,7 @@ TEST(LogLoss, LogLossGradient)
 TEST(LogLoss, LogLossHessian)
 {
     LogLoss logloss;
-    Vector preds = Vector(10);
-
-    std::fill(preds.begin(), preds.end(), 0.5);
+    Vector preds = Vector::Contant(10, 0.5);
 
     Vector hessian = logloss.hessian(preds);
     ASSERT_EQ(hessian.size(), preds.size());
@@ -69,11 +64,8 @@ TEST(LogLoss, LogLossHessian)
 TEST(LogLoss, LogLossLossAtMustBeZero)
 {
     LogLoss logloss;
-    Vector preds = Vector(10);
-    Vector targets = Vector(10);
-
-    std::fill(preds.begin(), preds.end(), 1.0);
-    std::fill(targets.begin(), targets.end(), 1.0);
+    Vector preds = Vector::Constant(10, 1.0);
+    Vector targets = Vector::Constant(10, 1.0);
 
     double loss = logloss.lossAt(preds, targets);
     ASSERT_NEAR(loss, 0, 1.0e-7);

@@ -7,8 +7,6 @@
 
 namespace microgbt {
 
-    using Vector = std::vector<double>;
-
     /**
      * Log loss metric
      *

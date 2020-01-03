@@ -68,8 +68,7 @@ namespace microgbt {
           */
         inline double calc_leaf_weight(const Vector &gradient,
                                        const Vector &hessian) const {
-            return - std::accumulate(gradient.begin(), gradient.end(), 0.0)
-                   / (std::accumulate(hessian.begin(), hessian.end(), 0.0) + _lambda);
+            return - gradient.sum() / (hessian.sum() + _lambda);
         }
 
 

@@ -6,7 +6,8 @@ TEST(Dataset, DefaultConstructor)
 
     size_t m = 2, n = 3;
     Eigen::MatrixXd A = Eigen::MatrixXd::Zero(m, n);
-    microgbt::Vector y = {1.0, 2.0};
+    microgbt::Vector y(2);
+    y << 1.0, 2.0;
     microgbt::Dataset dataset(A, y);
 
     ASSERT_EQ(dataset.nRows(),  m);
@@ -18,7 +19,8 @@ TEST(Dataset, Constructor)
 
     size_t m = 2, n = 3;
     Eigen::MatrixXd A = Eigen::MatrixXd::Zero(m, n);
-    microgbt::Vector y = {1.0, 2.0};
+    microgbt::Vector y(2);
+    y << 1.0, 2.0;
     microgbt::Dataset dataset(A, y);
 
     std::vector<size_t> left = {0};

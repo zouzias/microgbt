@@ -8,7 +8,7 @@
 
 namespace microgbt {
 
-    using Vector = std::vector<double>;
+    using Vector = Eigen::RowVectorXf;
     using VectorT = std::vector<size_t>;
     using MatrixType = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
     using SortedMatrixType = Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
@@ -136,7 +136,7 @@ namespace microgbt {
 
         inline Vector y() const {
             Vector proj(_rowIndices.size());
-            for (size_t i = 0; i < proj.size(); i++) {
+            for (long i = 0; i < proj.size(); i++) {
                 proj[i] = (*_y)[_rowIndices[i]];
             }
             return proj;
