@@ -67,7 +67,6 @@ namespace microgbt {
             }
         }
 
-
         Dataset(Dataset const &dataset) = default;
 
         /**

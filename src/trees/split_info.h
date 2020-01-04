@@ -41,8 +41,8 @@ namespace microgbt {
                 _bestSplitNumericValue = bestSplitNumericValue;
             }
 
-            SplitInfo(const VectorT& sortedFeatureIndices, double gain, double bestSplitNumericValue, size_t bestSortedIdx):
-                _sortedFeatureIndices(sortedFeatureIndices) {
+            SplitInfo(VectorT sortedFeatureIndices, double gain, double bestSplitNumericValue, size_t bestSortedIdx):
+                _sortedFeatureIndices(std::move(sortedFeatureIndices)) {
                 _bestGain = gain;
                 _bestSplitNumericValue = bestSplitNumericValue;
                 _bestSortedIndex = bestSortedIdx;
