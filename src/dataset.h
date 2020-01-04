@@ -11,7 +11,6 @@ namespace microgbt {
     using Vector = std::vector<double>;
     using VectorT = std::vector<size_t>;
     using MatrixType = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
-    using SortedMatrixType = Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 
     /**
     * Dataset represents a machine learning "design matrix" and target vector, (X, y)
@@ -26,7 +25,7 @@ namespace microgbt {
         // Target vector
         std::shared_ptr<Vector> _y;
 
-        SortedMatrixType _sortedMatrixIdx;
+        std::vector<VectorT> _sortedMatrixIdx;
 
         VectorT _rowIndices;
 
@@ -35,45 +34,36 @@ namespace microgbt {
          * @param v
          * @return
          */
-         Eigen::VectorXi sortIndices(long colIndex) const{
+         VectorT sortIndices(long colIndex) const{
 
             // initialize original index locations
-            Eigen::VectorXd v = col(colIndex);
-            long n = v.size();
-
-            Eigen::VectorXi idx(n);
+            VectorT idx(_rowIndices.size());
             // idx contains now 0,1,...,v.size() - 1
-            std::iota(idx.data(), idx.data() + idx.size(), 0);
+            std::iota(idx.begin(), idx.end(), 0);
 
             // sort indexes based on comparing values in v
-            std::sort(idx.data(), idx.data() + idx.size(),
-                 [&v](long i1, long i2) {return v[i1] < v[i2];});
+            std::sort(idx.begin(), idx.end(),
+                 [this, colIndex](long i1, long i2) {
+                return _X->coeffRef(_rowIndices[i1], colIndex) < _X->coeffRef(_rowIndices[i2], colIndex);
+            });
 
             return idx;
         }
-
-        inline Eigen::RowVectorXd col(long colIndex) const {
-            Eigen::RowVectorXd column(_rowIndices.size());
-            for (size_t i = 0; i < _rowIndices.size(); i++) {
-                column[i] = _X->coeffRef(_rowIndices[i], colIndex);
-            }
-            return column;
-        }
-
     public:
 
         Dataset() = default;
 
         Dataset(const MatrixType& X, const Vector &y):
-        _sortedMatrixIdx(X.rows(), X.cols()),
+        _sortedMatrixIdx(X.cols()),
         _rowIndices(y.size()){
             _X = std::make_shared<MatrixType>(X);
             _y = std::make_shared<Vector>(y);
+
             // By default, all rows are included in the dataset
             std::iota(_rowIndices.begin(), _rowIndices.end(), 0);
 
             for ( long j = 0; j < X.cols(); j++) {
-                _sortedMatrixIdx.col(j) = sortIndices(j);
+                _sortedMatrixIdx[j] = sortIndices(j);
             }
         }
 
@@ -86,40 +76,35 @@ namespace microgbt {
          * @param bestGain
          * @param side
          */
-        Dataset(Dataset const &dataset, const SplitInfo &bestGain, SplitInfo::Side side) {
+        Dataset(Dataset const &dataset, const SplitInfo &bestGain, SplitInfo::Side side):
+                _sortedMatrixIdx(dataset.numFeatures()) {
 
             _X = dataset.X();
             _y = dataset.yptr();
 
-            VectorT localIds;
+            size_t len, start, end;
             if (side == SplitInfo::Side::Left) {
-                localIds = bestGain.getLeftLocalIds();
+                start = 0, end = bestGain.getBestSortedIndex();
+                len = end;
             } else {
-                localIds = bestGain.getRightLocalIds();
+                start = bestGain.getBestSortedIndex(), end = bestGain.size();
+                len = end - start;
             }
 
-            _rowIndices = VectorT(localIds.size());
-            VectorT otherRowIndices = dataset.rowIter();
-            for (size_t i = 0 ; i < localIds.size(); i++) {
-                _rowIndices[i] = otherRowIndices[localIds[i]];
+            _rowIndices = VectorT(len);
+            for (size_t i = start ; i < end; i++) {
+                _rowIndices[i - start] = dataset._rowIndices[bestGain.getSortedFeatureIndex(i)];
             }
 
-            size_t rows = _rowIndices.size();
             long cols = dataset.numFeatures();
 
-            _sortedMatrixIdx = SortedMatrixType(rows, cols);
-
             for (long j = 0; j < cols; j++) {
-                _sortedMatrixIdx.col(j) = sortIndices(j);
+                _sortedMatrixIdx[j] = sortIndices(j);
             }
         }
 
         inline size_t nRows() const {
-            return this->_rowIndices.size();
-        }
-
-        inline VectorT rowIter() const {
-            return _rowIndices;
+            return _rowIndices.size();
         }
 
         inline long numFeatures() const {
@@ -155,8 +140,8 @@ namespace microgbt {
          *
          * @param colIndex Feature / column of above matrix
          */
-        inline Eigen::RowVectorXi sortedColumnIndices(long colIndex) const {
-            return _sortedMatrixIdx.col(colIndex);
+        inline const VectorT& sortedColumnIndices(long colIndex) const {
+            return _sortedMatrixIdx[colIndex];
         }
     };
 }

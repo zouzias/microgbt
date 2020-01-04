@@ -54,7 +54,7 @@ namespace microgbt {
                                        int featureId) const {
 
             // Sort the feature by value and return permutation of indices (i.e., argsort)
-            const Eigen::RowVectorXi& sortedInstanceIds = dataset.sortedColumnIndices(featureId);
+            const VectorT& sortedInstanceIds = dataset.sortedColumnIndices(featureId);
 
             // Cummulative sum of gradients and Hessian
             Vector cum_sum_G(dataset.nRows()), cum_sum_H(dataset.nRows());

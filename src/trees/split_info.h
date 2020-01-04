@@ -16,7 +16,7 @@ namespace microgbt {
         class SplitInfo {
 
             // Sorted list of feature indices with respect to feature values
-            Eigen::RowVectorXi _sortedFeatureIndices;
+            VectorT _sortedFeatureIndices;
 
             /* Best gain of split and split value on which the best gain is attained */
             double _bestGain = std::numeric_limits<double>::min(), _bestSplitNumericValue = 0.0;
@@ -41,8 +41,8 @@ namespace microgbt {
                 _bestSplitNumericValue = bestSplitNumericValue;
             }
 
-            SplitInfo(Eigen::RowVectorXi  sortedFeatureIndices, double gain, double bestSplitNumericValue, size_t bestSortedIdx):
-                _sortedFeatureIndices(std::move(sortedFeatureIndices)) {
+            SplitInfo(const VectorT& sortedFeatureIndices, double gain, double bestSplitNumericValue, size_t bestSortedIdx):
+                _sortedFeatureIndices(sortedFeatureIndices) {
                 _bestGain = gain;
                 _bestSplitNumericValue = bestSplitNumericValue;
                 _bestSortedIndex = bestSortedIdx;
@@ -65,14 +65,16 @@ namespace microgbt {
                 return _bestFeatureId;
             }
 
-            VectorT getLeftLocalIds() const {
-                return VectorT(_sortedFeatureIndices.data(),
-                        _sortedFeatureIndices.data() + _bestSortedIndex);
+            inline size_t getBestSortedIndex() const {
+                return _bestSortedIndex;
             }
 
-            VectorT getRightLocalIds() const {
-                return VectorT(_sortedFeatureIndices.data() + _bestSortedIndex,
-                        _sortedFeatureIndices.data() + _sortedFeatureIndices.size());
+            inline size_t getSortedFeatureIndex(long i) const {
+                return _sortedFeatureIndices[i];
+            }
+
+            inline size_t size() const {
+                return _sortedFeatureIndices.size();
             }
 
             /**
@@ -85,19 +87,19 @@ namespace microgbt {
              * @return a sub-vector of the input vector based on the split information
              */
             VectorD split(const VectorD &vector, const SplitInfo::Side &side) const {
-                VectorT rowIndices;
+                size_t len, start, end;
                 if (side == SplitInfo::Side::Left) {
-                    rowIndices = getLeftLocalIds();
+                    start = 0, end = _bestSortedIndex;
+                    len = _bestSortedIndex;
                 } else {
-                    rowIndices = getRightLocalIds();
+                    start = _bestSortedIndex, end = _sortedFeatureIndices.size();
+                    len = _sortedFeatureIndices.size() - _bestSortedIndex;
                 }
 
-                VectorD splitVector;
-                std::transform(rowIndices.begin(), rowIndices.end(),
-                        std::back_inserter(splitVector),
-                        [&vector](size_t rowIndex){
-                    return vector[rowIndex];
-                });
+                VectorD splitVector(len);
+                for( size_t i = start ; i < end; i++){
+                    splitVector[i - start] = vector[_sortedFeatureIndices[i]];
+                }
 
                 return splitVector;
             }
