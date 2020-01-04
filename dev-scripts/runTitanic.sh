@@ -2,7 +2,7 @@
 
 # Run make and copy shared library to examples
 
-./runInstallPyPackage.sh
+./dev-scripts/runInstallPyPackage.sh
 
 # Run titanic example
 pushd ./examples/

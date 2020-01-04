@@ -16,7 +16,7 @@ TEST(Dataset, DefaultConstructor)
 TEST(Dataset, Constructor)
 {
 
-    size_t m = 2, n = 3;
+    long m = 2, n = 3;
     Eigen::MatrixXd A = Eigen::MatrixXd::Zero(m, n);
     microgbt::Vector y = {1.0, 2.0};
     microgbt::Dataset dataset(A, y);
@@ -27,7 +27,7 @@ TEST(Dataset, Constructor)
 
     microgbt::Dataset leftDS(dataset, splitInfo, microgbt::SplitInfo::Left);
 
-    ASSERT_EQ(leftDS.nRows(), left.size());
+    ASSERT_EQ(leftDS.nRows(), (long)left.size());
     ASSERT_EQ(leftDS.numFeatures(), n);
 
 }

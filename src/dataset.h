@@ -111,7 +111,7 @@ namespace microgbt {
             }
         }
 
-        inline size_t nRows() const { return this->_rowIndices.size(); }
+        inline long nRows() const { return static_cast<long>(this->_rowIndices.size()); }
 
         inline VectorT rowIter() const { return _rowIndices;}
 

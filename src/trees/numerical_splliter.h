@@ -59,8 +59,8 @@ namespace microgbt {
             // Cummulative sum of gradients and Hessian
             Vector cum_sum_G(dataset.nRows()), cum_sum_H(dataset.nRows());
             double cum_sum_g = 0.0, cum_sum_h = 0.0;
-            for (size_t i = 0 ; i < dataset.nRows(); i++) {
-                long idx = sortedInstanceIds[i];
+            for (long i = 0 ; i < dataset.nRows(); i++) {
+                size_t idx = sortedInstanceIds[i];
                 cum_sum_g += gradient[idx];
                 cum_sum_h += hessian[idx];
                 cum_sum_G[i] = cum_sum_g;
@@ -69,7 +69,7 @@ namespace microgbt {
 
             // For each feature, compute split gain and keep the split index with maximum gain
             Vector gainPerOrderedSampleIndex(dataset.nRows());
-            for (size_t i = 0 ; i < dataset.nRows(); i++){
+            for (long i = 0 ; i < dataset.nRows(); i++){
                 gainPerOrderedSampleIndex[i] = calc_split_gain(cum_sum_g, cum_sum_h, cum_sum_G[i], cum_sum_H[i]);
             }
 

@@ -1,9 +1,12 @@
+import pytest
 import microgbtpy
 import numpy as np
 import pandas as pd
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import roc_auc_score
+
 
 params = {
     "gamma": 0.1,
@@ -21,7 +24,8 @@ def load_titanic():
     """ Load Titanic dataset """
     df = pd.read_csv("../data/titanic.csv")
 
-    target = df["Survived"].astype(int).values
+    target = df["Survived"].astype(int).values.astype(np.double)
+
     df.drop(columns=["Survived", "PassengerId"], inplace=True)
 
     df["Embarked_C"] = df["Embarked"].isin(["C"]).astype(int)
@@ -36,7 +40,7 @@ def load_titanic():
 
     data = SimpleImputer().fit_transform(df)
 
-    X_train, X_valid, y_train, y_valid = train_test_split(data, target, test_size=0.15, random_state=42, shuffle=True)
+    X_train, X_valid, y_train, y_valid = train_test_split(data, target, test_size=0.30, random_state=42, shuffle=True)
     y_train = y_train.astype(np.double)
     y_valid = y_valid.astype(np.double)
     return X_train, X_valid, y_train, y_valid
@@ -56,7 +60,7 @@ def test_microgbt_input_params():
     assert gbt.best_iteration() == 0
 
 
-def test_microgbt_train():
+def test_microgbt_train_predict():
     num_iters = 100
     early_stopping_rounds = 10
 
@@ -73,3 +77,27 @@ def test_microgbt_train():
     for x in X_valid:
         pred = gbt.predict(x, gbt.best_iteration())
         assert 0 <= pred <= 1
+
+
+def test_microgbt_titanic_roc():
+    num_iters = 100
+    early_stopping_rounds = 10
+
+    X_train, X_valid, y_train, y_valid = load_titanic()
+
+    # Train
+    gbt = microgbtpy.GBT(params)
+    gbt.train(X_train, y_train,
+              X_valid, y_valid,
+              num_iters,
+              early_stopping_rounds)
+
+    # Predict
+    y_valid_preds = []
+    for x in X_valid:
+        y_valid_preds.append(gbt.predict(x, gbt.best_iteration()))
+
+    roc = roc_auc_score(y_valid, y_valid_preds)
+
+    print(roc)
+    assert False
