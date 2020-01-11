@@ -58,16 +58,17 @@ namespace microgbt {
                 localIndices = bestGain.getRightLocalIds();
             }
 
-            _rowIndices = VectorT(localIndices->size());
+            _rowIndices = VectorT();
+            _rowIndices.reserve(localIndices->size());
             const VectorT &otherRowIndices = dataset.rowIter();
             for (size_t i = 0 ; i < localIndices->size(); i++) {
-                _rowIndices[i] = otherRowIndices[(*localIndices)[i]];
+                _rowIndices.push_back(otherRowIndices[(*localIndices)[i]]);
             }
         }
 
         inline long nRows() const { return static_cast<long>(this->_rowIndices.size()); }
 
-        inline VectorT rowIter() const { return _rowIndices;}
+        inline VectorT rowIter() const { return _rowIndices; }
 
         inline long numFeatures() const { return this->_X->cols(); }
 

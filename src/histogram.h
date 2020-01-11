@@ -1,7 +1,7 @@
 #pragma once
 
-#include "dataset.h"
 #include <cmath>
+#include "dataset.h"
 
 namespace microgbt {
 
@@ -10,7 +10,7 @@ namespace microgbt {
     /**
      * A Gradient Boosting related Histogram
      *
-     * For each tuple of ("feature vector", "gradient vector", "hessian vector") constructs a histogram with domain
+     * Given a tuple of ("feature vector", "gradient vector", "hessian vector") constructs a histogram with domain
      * the feature vector values and binned gradient / hessian values
      */
     class Histogram {
@@ -20,7 +20,7 @@ namespace microgbt {
         // Number of bins / samples
         long _numBins = 0, _numSamples = 0;
 
-        // Histogram on Gradients / Hessians
+        // Histogram values on Gradients / Hessians
         std::vector<double> _gradientHist,  _hessianHist;
 
         // Histogram counts
@@ -39,11 +39,15 @@ namespace microgbt {
             _numSamples = gradients.size();
 
             // Setup the regular axis (min, max, numBins)
-            size_t maxValueIdx = std::max_element(featureValues.begin(), featureValues.end()) - featureValues.begin();
-            size_t minValueIdx = std::min_element(featureValues.begin(), featureValues.end()) - featureValues.begin();
+            for (auto v: featureValues) {
+                if ( v < _minValue) {
+                    _minValue = v;
+                }
 
-            _minValue = featureValues[minValueIdx];
-            _maxValue = featureValues[maxValueIdx];
+                if ( v > _maxValue) {
+                    _maxValue = v;
+                }
+            }
 
             // Length of bins
             _binLength = std::max((_maxValue - _minValue) / (double)_numBins, SMALLEST_BIN_LENGTH);
@@ -58,11 +62,9 @@ namespace microgbt {
         }
 
         void fillValues(const VectorD& featureValues, const VectorD& gradients, const VectorD& hessians) {
-
             _numSamples = featureValues.size();
-
-            std::fill(_gradientHist.begin(), _gradientHist.end(), 0);
-            std::fill(_hessianHist.begin(), _hessianHist.end(), 0);
+            std::fill(_gradientHist.begin(), _gradientHist.end(), 0.0);
+            std::fill(_hessianHist.begin(), _hessianHist.end(), 0.0);
             std::fill(_count.begin(), _count.end(), 0);
 
             // Fill in the histogram here
@@ -75,27 +77,18 @@ namespace microgbt {
         }
 
         double upperThreshold(long binIndex) const {
-            if (binIndex == _numBins - 1) {
-                return std::numeric_limits<double>::max();
-            }
+            if (binIndex == _numBins - 1) { return std::numeric_limits<double>::max(); }
             return _minValue + (double) (binIndex + 1) * _binLength;
         }
 
         double lowerThreshold(long binIndex) const {
-            if (binIndex == 0) {
-                return std::numeric_limits<double>::min();
-            }
-
-            if (binIndex == _numBins - 1) {
-                return _maxValue;
-            }
+            if (binIndex == 0) { return std::numeric_limits<double>::min(); }
+            if (binIndex == _numBins - 1) { return _maxValue; }
 
             return _minValue + (double) binIndex * _binLength;
         }
 
         long numBins() const { return _numBins; }
-
-        long numSamples() const { return _numSamples; }
 
         double binLength() const { return _binLength; }
 
@@ -118,12 +111,8 @@ namespace microgbt {
          * @return Index of histogram bin that input value is mapped
          */
         inline long bin(double value) const {
-            if ( value < _minValue) {
-                return 0;
-            }
-            if ( value > _maxValue) {
-                return _numBins - 1;
-            }
+            if ( value < _minValue) { return 0; }
+            if ( value > _maxValue) { return _numBins - 1; }
 
             return std::min(static_cast<long>(std::floor( (value - _minValue) / _binLength)), _numBins - 1);
         }

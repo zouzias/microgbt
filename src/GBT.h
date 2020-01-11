@@ -31,7 +31,7 @@ namespace microgbt {
          * @param hessian Hessian vector: each coordinate corresponds to sample (row index)
          * @param shrinkageRate Shrinkage rate
          */
-        Tree buildTree(const Dataset &trainSet, const Vector& previousPreds, const Vector &gradient,
+        Tree buildTree(const Dataset &trainSet, const Vector &gradient,
                 const Vector &hessian, double shrinkageRate) const {
             Tree tree = Tree(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
 
@@ -47,7 +47,7 @@ namespace microgbt {
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTimestamp - startTimestamp ).count();
             std::cout << "[Histograms build in " << duration << " millis ...]" << std::endl;
 
-            tree.build(trainSet, histograms, previousPreds, gradient, hessian, shrinkageRate);
+            tree.build(trainSet, histograms, gradient, hessian, shrinkageRate);
             return tree;
         }
 
@@ -135,7 +135,7 @@ namespace microgbt {
 
                 // Grow a new tree learner
                 std::cout << "[Building next tree...]" << std::endl;
-                Tree tree = buildTree(trainSet, scores, gradient, hessian, learningRate);
+                Tree tree = buildTree(trainSet, gradient, hessian, learningRate);
                 std::cout << "[Tree is built successfully]" << std::endl;
 
                 // Update the learning rate

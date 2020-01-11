@@ -48,26 +48,23 @@ namespace microgbt {
 
             void setBestFeatureId(size_t bestFeatureId) { _bestFeatureId = bestFeatureId; }
 
-            inline long getBestFeatureId() const { return _bestFeatureId; }
+            inline size_t getBestFeatureId() const { return _bestFeatureId; }
 
-            std::shared_ptr<VectorT> getLeftLocalIds() const {
-                return std::make_shared<VectorT>(_leftSplit);
-            }
+            std::shared_ptr<VectorT> getLeftLocalIds() const { return std::make_shared<VectorT>(_leftSplit); }
 
-            std::shared_ptr<VectorT>  getRightLocalIds() const {
-                return std::make_shared<VectorT>(_rightSplit);
-            }
+            std::shared_ptr<VectorT>  getRightLocalIds() const { return std::make_shared<VectorT>(_rightSplit); }
 
             /**
              * Split a vector based on a side, i.e., left and right side.
              *
              * SplitInfo has the left and right subset of indices corresponding to the left and right subtree, respectively.
              *
-             * @param vector Input vector to split
+             * @param vec Input vector to split
              * @param side Left or right side
              * @return a sub-vector of the input vector based on the split information
              */
-            VectorD split(const VectorD &vector, const SplitInfo::Side &side) const {
+            VectorD split(const VectorD &vec, const SplitInfo::Side &side) const {
+                VectorD splitVector;
                 std::shared_ptr<VectorT> rowIndices;
                 if (side == SplitInfo::Side::Left) {
                     rowIndices = getLeftLocalIds();
@@ -75,13 +72,12 @@ namespace microgbt {
                     rowIndices = getRightLocalIds();
                 }
 
-                VectorD splitVector(rowIndices->size());
-
+                splitVector.reserve(rowIndices->size());
                 for (size_t i = 0; i < rowIndices->size(); i++){
-                    splitVector[i] = vector[(*rowIndices)[i]];
+                    splitVector.push_back(vec[(*rowIndices)[i]]);
                 }
 
                 return splitVector;
             }
         };
-} // namespace microgbt
+}

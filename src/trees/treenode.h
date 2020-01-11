@@ -81,7 +81,6 @@ namespace microgbt {
          *  (Refer to Algorithm1 of Reference[1])
          *
          * @param trainSet Train dataset
-         * @param previousPreds
          * @param gradient Gradient vector
          * @param hessian Hessian vector
          * @param shrinkage Current shrinkage parameter
@@ -89,7 +88,6 @@ namespace microgbt {
          */
         void build(const Dataset &trainSet,
                    const std::vector<Histogram>& histograms,
-                   const Vector &previousPreds,
                    const Vector &gradient,
                    const Vector &hessian,
                    double shrinkage,
@@ -128,7 +126,6 @@ namespace microgbt {
             Dataset leftDataset(trainSet, bestGain, SplitInfo::Side::Left);
             Vector leftGradient = bestGain.split(gradient, SplitInfo::Side::Left);
             Vector leftHessian = bestGain.split(hessian, SplitInfo::Side::Left);
-            Vector leftPreviousPreds = bestGain.split(previousPreds, SplitInfo::Side::Left);
 
             // Create Histogram on left subtree
             std::vector<Histogram> leftHistograms = histograms;
@@ -137,12 +134,11 @@ namespace microgbt {
             }
 
             this->leftSubTree = std::make_unique<TreeNode>(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
-            leftSubTree->build(leftDataset, leftHistograms, leftPreviousPreds, leftGradient, leftHessian, shrinkage, depth + 1);
+            leftSubTree->build(leftDataset, leftHistograms, leftGradient, leftHessian, shrinkage, depth + 1);
 
             Dataset rightDataset(trainSet, bestGain, SplitInfo::Side::Right);
             Vector rightGradient = bestGain.split(gradient, SplitInfo::Side::Right);
             Vector rightHessian = bestGain.split(hessian, SplitInfo::Side::Right);
-            Vector rightPreviousPreds = bestGain.split(previousPreds, SplitInfo::Side::Right);
 
             // Create Histogram on right subtree
             std::vector<Histogram> rightHistograms = histograms;
@@ -151,7 +147,7 @@ namespace microgbt {
             }
 
             this->rightSubTree = std::make_unique<TreeNode>(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
-            rightSubTree->build(rightDataset, rightHistograms, rightPreviousPreds, rightGradient, rightHessian, shrinkage, depth + 1);
+            rightSubTree->build(rightDataset, rightHistograms, rightGradient, rightHessian, shrinkage, depth + 1);
         }
 
         /**
