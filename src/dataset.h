@@ -26,18 +26,17 @@ class Dataset
     // Target vector
     std::shared_ptr<Vector> _y;
 
-        VectorT _rowIndices;
+    VectorT _rowIndices;
 
     public:
 
-        Dataset() = default;
+    Dataset() = default;
 
-        Dataset(const MatrixType& X, const Vector &y): _rowIndices(y.size()){
-            _X = std::make_shared<MatrixType>(X);
-            _y = std::make_shared<Vector>(y);
-            // By default, all rows are included in the dataset
-            std::iota(_rowIndices.begin(), _rowIndices.end(), 0);
-        }
+    Dataset(const MatrixType& X, const Vector &y): _rowIndices(y.size()){
+        _X = std::make_shared<MatrixType>(X);
+        _y = std::make_shared<Vector>(y);
+        // By default, all rows are included in the dataset
+        std::iota(_rowIndices.begin(), _rowIndices.end(), 0);
     }
 
     Dataset(Dataset const &dataset) = default;
@@ -54,18 +53,18 @@ class Dataset
         _X = dataset.X();
         _y = dataset.yptr();
 
-            std::shared_ptr<VectorT> localIndices;
-            if (side == SplitInfo::Side::Left) {
-                localIndices = bestGain.getLeftLocalIds();
-            } else {
-                localIndices = bestGain.getRightLocalIds();
-            }
+        std::shared_ptr<VectorT> localIndices;
+        if (side == SplitInfo::Side::Left) {
+            localIndices = bestGain.getLeftLocalIds();
+        } else {
+            localIndices = bestGain.getRightLocalIds();
+        }
 
-            _rowIndices = VectorT(localIndices->size());
-            const VectorT &otherRowIndices = dataset.rowIter();
-            for (size_t i = 0 ; i < localIndices->size(); i++) {
-                _rowIndices[i] = otherRowIndices[(*localIndices)[i]];
-            }
+        _rowIndices = VectorT();
+        _rowIndices.reserve(localIndices->size());
+        const VectorT &otherRowIndices = dataset.rowIter();
+        for (size_t i = 0 ; i < localIndices->size(); i++) {
+            _rowIndices.push_back(otherRowIndices[(*localIndices)[i]]);
         }
     }
 

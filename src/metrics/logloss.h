@@ -86,6 +86,6 @@ public:
         return -loss / n;
     }
 
-    double scoreToPrediction(double score) const override { return logit(score); }
+    inline double scoreToPrediction(double score) const override { return logit(score); }
 };
 } // namespace microgbt

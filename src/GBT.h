@@ -33,7 +33,7 @@ class GBT
          * @param hessian Hessian vector: each coordinate corresponds to sample (row index)
          * @param shrinkageRate Shrinkage rate
          */
-        Tree buildTree(const Dataset &trainSet, const Vector& previousPreds, const Vector &gradient,
+        Tree buildTree(const Dataset &trainSet, const Vector &gradient,
                 const Vector &hessian, double shrinkageRate) const {
             Tree tree = Tree(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
 
@@ -49,7 +49,7 @@ class GBT
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTimestamp - startTimestamp ).count();
             std::cout << "[Histograms build in " << duration << " millis ...]" << std::endl;
 
-            tree.build(trainSet, histograms, previousPreds, gradient, hessian, shrinkageRate);
+            tree.build(trainSet, histograms, gradient, hessian, shrinkageRate);
             return tree;
         }
 
@@ -57,23 +57,22 @@ class GBT
 
         GBT() = default;
 
-        explicit GBT(const std::map<std::string, double>& params): GBT() {
-            this->_lambda = params.at("lambda");
-            this->_gamma = params.at("gamma");
-            this->_histogramNumBins = static_cast<int>(params.at("max_bin"));
-            this->_shrinkageRate = params.at("shrinkage_rate");
-            this->_minSplitGain = params.at("min_split_gain");
-            this->_minTreeSize = params.at("min_tree_size");
-            this->_learningRate = params.at("learning_rate");
-            this->_maxDepth = static_cast<int>(params.at("max_depth"));
-            this->_metricName = static_cast<int>(params.at("metric"));
+    explicit GBT(const std::map<std::string, double>& params): GBT() {
+        this->_lambda = params.at("lambda");
+        this->_gamma = params.at("gamma");
+        this->_histogramNumBins = static_cast<int>(params.at("max_bin"));
+        this->_shrinkageRate = params.at("shrinkage_rate");
+        this->_minSplitGain = params.at("min_split_gain");
+        this->_minTreeSize = params.at("min_tree_size");
+        this->_learningRate = params.at("learning_rate");
+        this->_maxDepth = static_cast<int>(params.at("max_depth"));
+        this->_metricName = static_cast<int>(params.at("metric"));
 
-            if (_metricName == 0){
-                this->_metric = std::unique_ptr<Metric>(new LogLoss());
-            }
-            else {
-                this->_metric = std::unique_ptr<Metric>(new RMSE());
-            }
+        if (_metricName == 0){
+            this->_metric = std::unique_ptr<Metric>(new LogLoss());
+        }
+        else {
+            this->_metric = std::unique_ptr<Metric>(new RMSE());
         }
     }
 
@@ -120,15 +119,13 @@ class GBT
          * @param numBoostRound  Number of boosting rounds
          * @param earlyStoppingRounds number of rounds to consider for early stopping, i.e., if there is not improvement
          */
-    void train(const Dataset &trainSet, const Dataset &validSet, int numBoostRound, int earlyStoppingRounds)
-    {
+    void train(const Dataset &trainSet, const Dataset &validSet, int numBoostRound, int earlyStoppingRounds) {
 
         long bestIteration = 0;
         double learningRate = _shrinkageRate, bestValidationLoss = std::numeric_limits<double>::max();
 
         // For each iteration, grow an additional tree
-        for (long iterCount = 0; iterCount < numBoostRound; iterCount++)
-        {
+        for (long iterCount = 0; iterCount < numBoostRound; iterCount++) {
 
             std::cout << "[Iteration: " << iterCount << "]" << std::endl;
             auto startTimestamp = std::chrono::high_resolution_clock::now();
@@ -143,7 +140,7 @@ class GBT
 
             // Grow a new tree learner
             std::cout << "[Building next tree...]" << std::endl;
-            Tree tree = buildTree(trainSet, scores, gradient, hessian, learningRate);
+            Tree tree = buildTree(trainSet, gradient, hessian, learningRate);
             std::cout << "[Tree is built successfully]" << std::endl;
 
             // Update the learning rate
@@ -160,23 +157,21 @@ class GBT
             double currentValidationLoss = _metric->lossAt(validPreds, validSet.y());
 
             auto endTimestamp = std::chrono::high_resolution_clock::now();
-            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTimestamp - startTimestamp).count();
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTimestamp - startTimestamp ).count();
             std::cout << "[Duration: " << duration << " millis] | [Train Loss]: " << trainLoss
-                      << " | [Valid Loss]: " << bestValidationLoss << std::endl;
+                << " | [Valid Loss]: " << bestValidationLoss <<std::endl;
 
             // Update best iteration / best validation error
-            if (currentValidationLoss < bestValidationLoss)
-            {
+            if (currentValidationLoss < bestValidationLoss) {
                 bestValidationLoss = currentValidationLoss;
                 bestIteration = iterCount;
             }
 
             // Check for early stopping
             // Namely, if there is no improvement in the last early_stopping_rounds, then stop
-            if (iterCount - bestIteration >= earlyStoppingRounds)
-            {
+            if (iterCount - bestIteration >= earlyStoppingRounds) {
                 std::cout << "Early stopping, best iteration is:" << bestIteration;
-                std::cout << "Train Loss: " << trainLoss << "| Valid Loss: " << bestValidationLoss << std::endl;
+                std::cout << "Train Loss: " << trainLoss << "| Valid Loss: " << bestValidationLoss <<std::endl;
                 break;
             }
         }

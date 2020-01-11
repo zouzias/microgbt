@@ -80,7 +80,9 @@ class NumericalSplitter : public Splitter
             double bestSplitNumericValue = histogram.upperThreshold(bestGainIndex);
 
             VectorT leftSplit, rightSplit;
-            for (size_t i = 0; i < dataset.nRows(); i++) {
+            leftSplit.reserve(dataset.nRows());
+            rightSplit.reserve(dataset.nRows());
+            for (long i = 0; i < dataset.nRows(); i++) {
                 if ( dataset.coeff(i, featureId) < bestSplitNumericValue) {
                     leftSplit.push_back(i);
                 } else {

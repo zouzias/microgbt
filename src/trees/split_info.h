@@ -24,9 +24,6 @@ class SplitInfo
     /* Best gain of split and split value on which the best gain is attained */
     double _bestGain = std::numeric_limits<double>::min(), _bestSplitNumericValue = 0.0;
 
-    // Keep track of best sorted sample index
-    size_t _bestSortedIndex = 0;
-
     // Feature index on which best gain was attained
     long _bestFeatureId = -1;
 
@@ -53,42 +50,38 @@ public:
 
     inline double splitValue() const { return _bestSplitNumericValue; }
 
+    inline double getBestFeatureId() const { return _bestFeatureId; }
+
     void setBestFeatureId(size_t bestFeatureId) { _bestFeatureId = bestFeatureId; }
 
-    inline long getBestFeatureId() const { return _bestFeatureId; }
+    std::shared_ptr<VectorT> getLeftLocalIds() const { return std::make_shared<VectorT>(_leftSplit); }
 
-    std::shared_ptr<VectorT> getLeftLocalIds() const {
-        return std::make_shared<VectorT>(_leftSplit);
-    }
+    std::shared_ptr<VectorT>  getRightLocalIds() const { return std::make_shared<VectorT>(_rightSplit); }
 
-    std::shared_ptr<VectorT>  getRightLocalIds() const {
-        return std::make_shared<VectorT>(_rightSplit);
-    }
-
-    /**
+        /**
          * Split a vector based on a side, i.e., left and right side.
          *
          * SplitInfo has the left and right subset of indices corresponding to the left and right subtree, respectively.
          *
-         * @param vector Input vector to split
+         * @param vec Input vector to split
          * @param side Left or right side
          * @return a sub-vector of the input vector based on the split information
          */
-    VectorD split(const VectorD &vector, const SplitInfo::Side &side) const {
-        std::shared_ptr<VectorT> rowIndices;
-        if (side == SplitInfo::Side::Left) {
-            rowIndices = getLeftLocalIds();
-        } else {
-            rowIndices = getRightLocalIds();
+        VectorD split(const VectorD &vec, const SplitInfo::Side &side) const {
+            VectorD splitVector;
+            std::shared_ptr<VectorT> rowIndices;
+            if (side == SplitInfo::Side::Left) {
+                rowIndices = getLeftLocalIds();
+            } else {
+                rowIndices = getRightLocalIds();
+            }
+
+            splitVector.reserve(rowIndices->size());
+            for (size_t i = 0; i < rowIndices->size(); i++){
+                splitVector.push_back(vec[(*rowIndices)[i]]);
+            }
+
+            return splitVector;
         }
-
-        VectorD splitVector(rowIndices->size());
-
-        for (size_t i = 0; i < rowIndices->size(); i++){
-            splitVector[i] = vector[(*rowIndices)[i]];
-        }
-
-        return splitVector;
-    }
-};
-} // namespace microgbt
+    };
+}
