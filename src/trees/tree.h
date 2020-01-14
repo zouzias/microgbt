@@ -44,14 +44,13 @@ public:
           * @param shrinkage Shrinkage rate
           */
     void build(const Dataset &trainSet,
-               const std::vector<Histogram>& histograms,
                const Vector &gradient,
                const Vector &hessian,
                double shrinkage) {
 
         this->_root = std::make_shared<TreeNode>(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
         int depth = 0;
-        this->_root->build(trainSet, histograms, gradient, hessian, shrinkage, depth);
+        this->_root->build(trainSet, gradient, hessian, shrinkage, depth);
     }
 
     /**

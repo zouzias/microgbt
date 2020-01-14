@@ -7,7 +7,6 @@
 
 #include "histogram.h"
 #include "trees/split_info.h"
-#include "types.h"
 
 namespace microgbt
 {
@@ -27,6 +26,8 @@ class Dataset
     std::shared_ptr<Vector> _y;
 
     VectorT _rowIndices;
+
+    std::vector<std::unique_ptr<Histogram>> _featureHistograms;
 
     public:
 
@@ -60,13 +61,19 @@ class Dataset
             localIndices = bestGain.getRightLocalIds();
         }
 
-        _rowIndices = VectorT();
-        _rowIndices.reserve(localIndices->size());
-        const VectorT &otherRowIndices = dataset.rowIter();
-        for (size_t i = 0 ; i < localIndices->size(); i++) {
-            _rowIndices.push_back(otherRowIndices[(*localIndices)[i]]);
+            _rowIndices = VectorT();
+            _rowIndices.reserve(localIndices->size());
+            const VectorT &otherRowIndices = dataset.rowIter();
+            for (size_t i = 0 ; i < localIndices->size(); i++) {
+                _rowIndices.push_back(otherRowIndices[(*localIndices)[i]]);
+            }
+
+            _featureHistograms = std::vector<std::unique_ptr<Histogram>>();
+            for (size_t j = 0 ; j < dataset.numFeatures(); j++) {
+                Histogram* h = dataset.histogram(j);
+                _featureHistograms.push_back(std::make_unique<Histogram>(*h));
+            }
         }
-    }
 
     inline long nRows() const { return static_cast<long>(this->_rowIndices.size()); }
 
@@ -100,6 +107,17 @@ class Dataset
 
         inline double coeff(long rowIndex, long colIndex) const {
             return _X->coeff(_rowIndices[rowIndex], colIndex);
+        }
+
+        Histogram* histogram(long colIndex) const {
+            return _featureHistograms[colIndex].get();
+        }
+
+        void constructHistograms(int histogramNumBins) {
+            // Create histogram per feature
+            for (long j = 0 ; j < numFeatures(); j++){
+                _featureHistograms.push_back(std::make_unique<Histogram>(Histogram(col(j), histogramNumBins)));
+            }
         }
     };
 }

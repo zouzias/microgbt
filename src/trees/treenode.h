@@ -85,69 +85,66 @@ namespace microgbt
          * @param shrinkage Current shrinkage parameter
          * @param depth Current depth on building process
          */
-    void build(const Dataset &trainSet,
-               const std::vector<Histogram>& histograms,
-               const Vector &gradient,
-               const Vector &hessian,
-               double shrinkage,
-               int depth) {
+        void build(const Dataset &trainSet,
+                   const VectorD &gradient,
+                   const VectorD &hessian,
+                   double shrinkage,
+                   int depth) {
 
-        // Check if depth is reached
-        if (depth > _maxDepth) {
-            this->_isLeaf = true;
-            this->_weight = this->calc_leaf_weight(gradient, hessian) * shrinkage;
-            return;
+            // Check if depth is reached
+            if (depth > _maxDepth) {
+                this->_isLeaf = true;
+                this->_weight = this->calc_leaf_weight(gradient, hessian) * shrinkage;
+                return;
+            }
+
+            // Check if # of sample is too small
+            if ( trainSet.nRows() <= _minTreeSize) {
+                this->_isLeaf = true;
+                this->_weight = this->calc_leaf_weight(gradient, hessian) * shrinkage;
+                return;
+            }
+
+            // Initialize a numeric splitter and find best split
+            NumericalSplitter splitter(_lambda);
+            SplitInfo bestGain = splitter.findBestSplit(trainSet);
+
+            // Check if best gain is less than minimum split gain (threshold)
+            if (bestGain.bestGain() < this->_minSplitGain) {
+                this->_isLeaf = true;
+                this->_weight = this->calc_leaf_weight(gradient, hessian) * shrinkage;
+                return;
+            }
+
+            // Update feature index and numeric value of optimal greedy split
+            this->_splitFeatureIndex = bestGain.getBestFeatureId();
+            this->_splitNumericValue = bestGain.splitValue();
+
+            // Recurse on left and right subtree
+            Dataset leftDataset(trainSet, bestGain, SplitInfo::Side::Left);
+            VectorD leftGradient = bestGain.split(gradient, SplitInfo::Side::Left);
+            VectorD leftHessian = bestGain.split(hessian, SplitInfo::Side::Left);
+
+            // Create Histogram on left subtree
+            for (long j = 0 ; j < leftDataset.numFeatures(); j++){
+                leftDataset.histogram(j)->fillValues(leftDataset.col(j), leftGradient, leftHessian);
+            }
+
+            this->leftSubTree = std::make_unique<TreeNode>(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
+            leftSubTree->build(leftDataset, leftGradient, leftHessian, shrinkage, depth + 1);
+
+            Dataset rightDataset(trainSet, bestGain, SplitInfo::Side::Right);
+            VectorD rightGradient = bestGain.split(gradient, SplitInfo::Side::Right);
+            VectorD rightHessian = bestGain.split(hessian, SplitInfo::Side::Right);
+
+            // Create Histogram on right subtree
+            for (long j = 0 ; j < rightDataset.numFeatures(); j++){
+                rightDataset.histogram(j)->fillValues(rightDataset.col(j), rightGradient, rightHessian);
+            }
+
+            this->rightSubTree = std::make_unique<TreeNode>(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
+            rightSubTree->build(rightDataset, rightGradient, rightHessian, shrinkage, depth + 1);
         }
-
-        // Check if # of sample is too small
-        if ( trainSet.nRows() <= _minTreeSize) {
-            this->_isLeaf = true;
-            this->_weight = this->calc_leaf_weight(gradient, hessian) * shrinkage;
-            return;
-        }
-
-        // Initialize a numeric splitter and find best split
-        NumericalSplitter splitter(histograms, _lambda);
-        SplitInfo bestGain = splitter.findBestSplit(trainSet);
-
-        // Check if best gain is less than minimum split gain (threshold)
-        if (bestGain.bestGain() < this->_minSplitGain) {
-            this->_isLeaf = true;
-            this->_weight = this->calc_leaf_weight(gradient, hessian) * shrinkage;
-            return;
-        }
-
-        // Update feature index and numeric value of optimal greedy split
-        this->_splitFeatureIndex = bestGain.getBestFeatureId();
-        this->_splitNumericValue = bestGain.splitValue();
-
-        // Recurse on left and right subtree
-        Dataset leftDataset(trainSet, bestGain, SplitInfo::Side::Left);
-        Vector leftGradient = bestGain.split(gradient, SplitInfo::Side::Left);
-        Vector leftHessian = bestGain.split(hessian, SplitInfo::Side::Left);
-
-        // Create Histogram on left subtree
-        std::vector<Histogram> leftHistograms = histograms;
-        for (long j = 0 ; j < leftDataset.numFeatures(); j++){
-            leftHistograms[j].fillValues(leftDataset.col(j), leftGradient, leftHessian);
-        }
-
-        this->leftSubTree = std::make_unique<TreeNode>(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
-        leftSubTree->build(leftDataset, leftHistograms, leftGradient, leftHessian, shrinkage, depth + 1);
-
-        Dataset rightDataset(trainSet, bestGain, SplitInfo::Side::Right);
-        Vector rightGradient = bestGain.split(gradient, SplitInfo::Side::Right);
-        Vector rightHessian = bestGain.split(hessian, SplitInfo::Side::Right);
-
-        // Create Histogram on right subtree
-        std::vector<Histogram> rightHistograms = histograms;
-        for (long j = 0 ; j < rightDataset.numFeatures(); j++){
-            rightHistograms[j].fillValues(rightDataset.col(j), rightGradient, rightHessian);
-        }
-
-        this->rightSubTree = std::make_unique<TreeNode>(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
-        rightSubTree->build(rightDataset, rightHistograms, rightGradient, rightHessian, shrinkage, depth + 1);
-    }
 
     /**
          * Return the score for a given sample, i.e. set of features
