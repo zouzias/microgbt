@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include<iostream>
+#include <chrono>
 #include <memory>
 #include <chrono>
 
@@ -9,6 +10,7 @@
 #include "metrics/metric.h"
 #include "metrics/logloss.h"
 #include "metrics/rmse.h"
+
 
 namespace microgbt {
 
@@ -36,18 +38,17 @@ namespace microgbt {
             Tree tree = Tree(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
 
             auto startTimestamp = std::chrono::high_resolution_clock::now();
-            std::cout << "[Building histograms...]" << std::endl;
-            // Create histogram per feature
-            std::vector<Histogram> histograms(trainSet.numFeatures());
+            std::cout << "[Fill histogram values...]" << std::endl;
+
             for (long j = 0 ; j < trainSet.numFeatures(); j++){
-                histograms[j] = Histogram(trainSet.col(j), gradient, hessian, _histogramNumBins);
+                trainSet.histogram(j)->fillValues(trainSet.col(j), gradient, hessian);
             }
 
             auto endTimestamp = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTimestamp - startTimestamp ).count();
             std::cout << "[Histograms build in " << duration << " millis ...]" << std::endl;
 
-            tree.build(trainSet, histograms, gradient, hessian, shrinkageRate);
+            tree.build(trainSet, gradient, hessian, shrinkageRate);
             return tree;
         }
 
@@ -103,6 +104,11 @@ namespace microgbt {
                 int numBoostRound, int earlyStoppingRounds) {
 
             Dataset trainSet(trainX, trainY), validSet(validX, validY);
+
+            // Construct histograms
+            trainSet.constructHistograms(_histogramNumBins);
+            validSet.constructHistograms(_histogramNumBins);
+
             train(trainSet, validSet, numBoostRound, earlyStoppingRounds);
         }
 

@@ -7,7 +7,6 @@
 
 #include "histogram.h"
 #include "trees/split_info.h"
-#include "types.h"
 
 namespace microgbt {
 
@@ -22,9 +21,11 @@ namespace microgbt {
         std::shared_ptr<MatrixType> _X;
 
         // Target vector
-        std::shared_ptr<Vector> _y;
+        std::shared_ptr<VectorD> _y;
 
         VectorT _rowIndices;
+
+        std::vector<std::unique_ptr<Histogram>> _featureHistograms;
 
     public:
 
@@ -64,6 +65,12 @@ namespace microgbt {
             for (size_t i = 0 ; i < localIndices->size(); i++) {
                 _rowIndices.push_back(otherRowIndices[(*localIndices)[i]]);
             }
+
+            _featureHistograms = std::vector<std::unique_ptr<Histogram>>();
+            for (size_t j = 0 ; j < dataset.numFeatures(); j++) {
+                Histogram* h = dataset.histogram(j);
+                _featureHistograms.push_back(std::make_unique<Histogram>(*h));
+            }
         }
 
         inline long nRows() const { return static_cast<long>(this->_rowIndices.size()); }
@@ -74,7 +81,7 @@ namespace microgbt {
 
         inline std::shared_ptr<MatrixType> X() const { return _X; }
 
-        inline std::shared_ptr<Vector> yptr() const { return _y; }
+        inline std::shared_ptr<VectorD> yptr() const { return _y; }
 
         inline Vector y() const {
             Vector proj(_rowIndices.size());
@@ -96,6 +103,17 @@ namespace microgbt {
 
         inline double coeff(long rowIndex, long colIndex) const {
             return _X->coeff(_rowIndices[rowIndex], colIndex);
+        }
+
+        Histogram* histogram(long colIndex) const {
+            return _featureHistograms[colIndex].get();
+        }
+
+        void constructHistograms(int histogramNumBins) {
+            // Create histogram per feature
+            for (long j = 0 ; j < numFeatures(); j++){
+                _featureHistograms.push_back(std::make_unique<Histogram>(Histogram(col(j), histogramNumBins)));
+            }
         }
     };
 }

@@ -1,11 +1,10 @@
 #pragma once
 
 #include <cmath>
-#include "dataset.h"
+#include <vector>
+#include "types.h"
 
 namespace microgbt {
-
-    using VectorD = std::vector<double>;
 
     /**
      * A Gradient Boosting related Histogram
@@ -33,34 +32,31 @@ namespace microgbt {
 
         Histogram() = default;
 
-        Histogram(const VectorD &featureValues, const VectorD &gradients, const VectorD &hessians, size_t numBins) :
+        Histogram(const VectorD &values, size_t numBins) :
                 _numBins(numBins), _gradientHist(numBins), _hessianHist(numBins), _count(numBins) {
 
-            _numSamples = gradients.size();
+            _numSamples = values.size();
 
             // Setup the regular axis (min, max, numBins)
-            for (auto v: featureValues) {
+            for (auto& v: values) {
                 if ( v < _minValue) {
                     _minValue = v;
-                }
-
-                if ( v > _maxValue) {
+                } else if ( v > _maxValue) {
                     _maxValue = v;
                 }
             }
 
             // Length of bins
             _binLength = std::max((_maxValue - _minValue) / (double)_numBins, SMALLEST_BIN_LENGTH);
-
-            // Fill in the histogram here
-            for (long i = 0; i < _numSamples; i++) {
-                long binIndex = bin(featureValues[i]);
-                _gradientHist[binIndex] += gradients[i];
-                _hessianHist[binIndex] += hessians[i];
-                _count[binIndex]++;
-            }
         }
 
+        /**
+        * Refills histogram's values while preserving histogram bins
+        *
+        * @param inputValues Input values
+        * @param gradients
+        * @param hessians
+        */
         void fillValues(const VectorD& featureValues, const VectorD& gradients, const VectorD& hessians) {
             _numSamples = featureValues.size();
             std::fill(_gradientHist.begin(), _gradientHist.end(), 0.0);
@@ -111,10 +107,31 @@ namespace microgbt {
          * @return Index of histogram bin that input value is mapped
          */
         inline long bin(double value) const {
-            if ( value < _minValue) { return 0; }
-            if ( value > _maxValue) { return _numBins - 1; }
+            if ( value < _minValue) {
+                return 0;
+            } else if ( value > _maxValue) {
+                return _numBins - 1;
+            }
 
             return std::min(static_cast<long>(std::floor( (value - _minValue) / _binLength)), _numBins - 1);
+        }
+
+        /**
+         * Substract two histograms. Subtract the gradient / hessian values of the histogram assuming identical
+         * histogram bins.
+         *
+         * @param other
+         * @return
+         */
+        Histogram operator-(const Histogram &other) const {
+            Histogram h(*this);
+            for (long i = 0 ; i < h._numBins; i++) {
+                h._gradientHist[i] -= other._gradientHist[i];
+                h._hessianHist[i] -= other._hessianHist[i];
+                h._count[i] -= other._count[i];
+            }
+
+            return h;
         }
     };
 }

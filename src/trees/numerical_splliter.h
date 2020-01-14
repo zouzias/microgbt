@@ -10,8 +10,6 @@ namespace microgbt {
      */
     class NumericalSplitter: public Splitter {
 
-        std::vector<Histogram> _histograms;
-
         // Regularization parameter of xgboost
         double _lambda;
 
@@ -47,25 +45,24 @@ namespace microgbt {
         *
         * @param dataset Input dataset
         * @param featureId Feature index
-        * @param histogram Feature histogram corresponding to featureId
         * @return Best split over all possible splits of feature 'featureId'
         */
-        SplitInfo optimumGainByFeature(const Dataset& dataset, long featureId,
-                const Histogram &histogram) const {
+        SplitInfo optimumGainByFeature(const Dataset& dataset, long featureId) const {
 
             // Cummulative sum of gradients and Hessian
-            long numBins = histogram.numBins();
-            Vector cum_sum_G(numBins), cum_sum_H(numBins);
+            const Histogram* histogram = dataset.histogram(featureId);
+            long numBins = histogram->numBins();
+            VectorD cum_sum_G(numBins), cum_sum_H(numBins);
             double cum_sum_g = 0.0, cum_sum_h = 0.0;
             for (long i = 0 ; i < numBins; i++) {
-                cum_sum_g += histogram.gradientAtBin(i);
-                cum_sum_h += histogram.hessianAtBin(i);
+                cum_sum_g += histogram->gradientAtBin(i);
+                cum_sum_h += histogram->hessianAtBin(i);
                 cum_sum_G[i] = cum_sum_g;
                 cum_sum_H[i] = cum_sum_h;
             }
 
             // For each feature, compute split gain and keep the split index with maximum gain
-            Vector gainPerOrderedSampleIndex(numBins);
+            VectorD gainPerOrderedSampleIndex(numBins);
             for (long i = 0 ; i < numBins; i++){
                 gainPerOrderedSampleIndex[i] = calc_split_gain(cum_sum_g, cum_sum_h, cum_sum_G[i], cum_sum_H[i]);
             }
@@ -74,7 +71,7 @@ namespace microgbt {
                     std::max_element(gainPerOrderedSampleIndex.begin(), gainPerOrderedSampleIndex.end())
                     - gainPerOrderedSampleIndex.begin();
             double bestGain = gainPerOrderedSampleIndex[bestGainIndex];
-            double bestSplitNumericValue = histogram.upperThreshold(bestGainIndex);
+            double bestSplitNumericValue = histogram->upperThreshold(bestGainIndex);
 
             VectorT leftSplit, rightSplit;
             leftSplit.reserve(dataset.nRows());
@@ -92,20 +89,18 @@ namespace microgbt {
 
     public:
 
-        explicit NumericalSplitter(std::vector<Histogram> histograms, double lambda):
-        _histograms(std::move(histograms)),
-        _lambda(lambda) {}
+        explicit NumericalSplitter(double lambda): _lambda(lambda) {}
 
 
         SplitInfo findBestSplit(const Dataset& dataset) const override {
-            size_t numFeatures = _histograms.size();
+            size_t numFeatures = dataset.numFeatures();
 
             // 1) For each tree node, enumerate over all features:
             // 2) For each feature, sorted the instances by feature numeric value
             //    - Compute gain for every feature (column of design matrix)
             std::vector<SplitInfo> gainPerFeature(numFeatures);
             for (size_t featureId = 0; featureId < numFeatures; featureId++) {
-                gainPerFeature[featureId] = optimumGainByFeature(dataset, featureId, _histograms[featureId]);
+                gainPerFeature[featureId] = optimumGainByFeature(dataset, featureId);
             }
 
             // 3) Use a linear scan to decide the best split along that feature

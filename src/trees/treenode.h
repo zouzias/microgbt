@@ -61,8 +61,8 @@ namespace microgbt {
           * @param hessian Hessian vector
           * @return
           */
-        inline double calc_leaf_weight(const Vector &gradient,
-                                       const Vector &hessian) const {
+        inline double calc_leaf_weight(const VectorD &gradient,
+                                       const VectorD &hessian) const {
             return - std::accumulate(gradient.begin(), gradient.end(), 0.0)
                    / (std::accumulate(hessian.begin(), hessian.end(), 0.0) + _lambda);
         }
@@ -87,9 +87,8 @@ namespace microgbt {
          * @param depth Current depth on building process
          */
         void build(const Dataset &trainSet,
-                   const std::vector<Histogram>& histograms,
-                   const Vector &gradient,
-                   const Vector &hessian,
+                   const VectorD &gradient,
+                   const VectorD &hessian,
                    double shrinkage,
                    int depth) {
 
@@ -108,7 +107,7 @@ namespace microgbt {
             }
 
             // Initialize a numeric splitter and find best split
-            NumericalSplitter splitter(histograms, _lambda);
+            NumericalSplitter splitter(_lambda);
             SplitInfo bestGain = splitter.findBestSplit(trainSet);
 
             // Check if best gain is less than minimum split gain (threshold)
@@ -124,30 +123,28 @@ namespace microgbt {
 
             // Recurse on left and right subtree
             Dataset leftDataset(trainSet, bestGain, SplitInfo::Side::Left);
-            Vector leftGradient = bestGain.split(gradient, SplitInfo::Side::Left);
-            Vector leftHessian = bestGain.split(hessian, SplitInfo::Side::Left);
+            VectorD leftGradient = bestGain.split(gradient, SplitInfo::Side::Left);
+            VectorD leftHessian = bestGain.split(hessian, SplitInfo::Side::Left);
 
             // Create Histogram on left subtree
-            std::vector<Histogram> leftHistograms = histograms;
             for (long j = 0 ; j < leftDataset.numFeatures(); j++){
-                leftHistograms[j].fillValues(leftDataset.col(j), leftGradient, leftHessian);
+                leftDataset.histogram(j)->fillValues(leftDataset.col(j), leftGradient, leftHessian);
             }
 
             this->leftSubTree = std::make_unique<TreeNode>(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
-            leftSubTree->build(leftDataset, leftHistograms, leftGradient, leftHessian, shrinkage, depth + 1);
+            leftSubTree->build(leftDataset, leftGradient, leftHessian, shrinkage, depth + 1);
 
             Dataset rightDataset(trainSet, bestGain, SplitInfo::Side::Right);
-            Vector rightGradient = bestGain.split(gradient, SplitInfo::Side::Right);
-            Vector rightHessian = bestGain.split(hessian, SplitInfo::Side::Right);
+            VectorD rightGradient = bestGain.split(gradient, SplitInfo::Side::Right);
+            VectorD rightHessian = bestGain.split(hessian, SplitInfo::Side::Right);
 
             // Create Histogram on right subtree
-            std::vector<Histogram> rightHistograms = histograms;
             for (long j = 0 ; j < rightDataset.numFeatures(); j++){
-                rightHistograms[j].fillValues(rightDataset.col(j), rightGradient, rightHessian);
+                rightDataset.histogram(j)->fillValues(rightDataset.col(j), rightGradient, rightHessian);
             }
 
             this->rightSubTree = std::make_unique<TreeNode>(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
-            rightSubTree->build(rightDataset, rightHistograms, rightGradient, rightHessian, shrinkage, depth + 1);
+            rightSubTree->build(rightDataset, rightGradient, rightHessian, shrinkage, depth + 1);
         }
 
         /**

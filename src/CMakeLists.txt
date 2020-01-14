@@ -1,6 +1,6 @@
 add_library(microgbt "" metrics/metric.h trees/tree.h trees/split_info.h
         GBT.h dataset.h metrics/logloss.h trees/treenode.h metrics/rmse.h
-        trees/numerical_splliter.h trees/splitter.h types.h histogram.h)
+        trees/numerical_splliter.h trees/splitter.h histogram.h types.h)
 
 target_sources(
     microgbt

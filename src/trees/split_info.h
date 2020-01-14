@@ -2,6 +2,7 @@
 #include <utility>
 #include <Eigen/Dense>
 #include <vector>
+#include <memory>
 
 #include "../types.h"
 
@@ -14,7 +15,7 @@ namespace microgbt {
          */
         class SplitInfo {
 
-            // Sorted list of feature indices with respect to feature values
+            // Left and right data point indices, i.e., indices of point falling to the left and right subtree
             VectorT _leftSplit, _rightSplit;
 
             /* Best gain of split and split value on which the best gain is attained */
