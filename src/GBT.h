@@ -2,13 +2,13 @@
 #include <vector>
 #include<iostream>
 #include <memory>
+#include <chrono>
+
 #include "dataset.h"
 #include "trees/tree.h"
 #include "metrics/metric.h"
 #include "metrics/logloss.h"
 #include "metrics/rmse.h"
-#include <chrono>
-
 
 namespace microgbt {
 
@@ -60,29 +60,17 @@ namespace microgbt {
             }
         }
 
-        inline int maxDepth() const {
-            return _maxDepth;
-        }
+        inline int maxDepth() const { return _maxDepth; }
 
-        inline double lambda() const {
-            return _lambda;
-        }
+        inline double lambda() const { return _lambda; }
 
-        inline double minSplitGain() const {
-            return _minSplitGain;
-        }
+        inline double minSplitGain() const { return _minSplitGain; }
 
-        inline double shrinkageRate() const {
-            return _shrinkageRate;
-        }
+        inline double shrinkageRate() const { return _shrinkageRate; }
 
-        inline long getBestIteration() const {
-            return _bestIteration;
-        }
+        inline long getBestIteration() const { return _bestIteration; }
 
-        inline double getLearningRate() const {
-            return _learningRate;
-        }
+        inline double getLearningRate() const { return _learningRate; }
 
         /**
          * Python entry point to train GBT
@@ -216,4 +204,4 @@ namespace microgbt {
             return scores;
         }
     };
-} // namespace microgbt
+}

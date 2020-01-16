@@ -4,14 +4,11 @@
 #include <Eigen/Dense>
 #include <numeric>
 #include <memory>
+
 #include "trees/split_info.h"
+#include "types.h"
 
 namespace microgbt {
-
-    using Vector = std::vector<double>;
-    using VectorT = std::vector<size_t>;
-    using MatrixType = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
-    using SortedMatrixType = Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 
     /**
     * Dataset represents a machine learning "design matrix" and target vector, (X, y)
@@ -114,25 +111,15 @@ namespace microgbt {
             }
         }
 
-        inline size_t nRows() const {
-            return this->_rowIndices.size();
-        }
+        inline size_t nRows() const { return this->_rowIndices.size(); }
 
-        inline VectorT rowIter() const {
-            return _rowIndices;
-        }
+        inline VectorT rowIter() const { return _rowIndices;}
 
-        inline long numFeatures() const {
-            return this->_X->cols();
-        }
+        inline long numFeatures() const { return this->_X->cols(); }
 
-        inline std::shared_ptr<MatrixType> X() const {
-            return _X;
-        }
+        inline std::shared_ptr<MatrixType> X() const { return _X; }
 
-        inline std::shared_ptr<Vector> yptr() const {
-            return _y;
-        }
+        inline std::shared_ptr<Vector> yptr() const { return _y; }
 
         inline Vector y() const {
             Vector proj(_rowIndices.size());
@@ -142,9 +129,7 @@ namespace microgbt {
             return proj;
         }
 
-        inline Eigen::RowVectorXd row(long rowIndex) const {
-            return _X->row(_rowIndices[rowIndex]);
-        }
+        inline Eigen::RowVectorXd row(long rowIndex) const { return _X->row(_rowIndices[rowIndex]); }
 
         /**
          * Sort the sample indices for a given feature index 'feature_id'.
@@ -155,8 +140,6 @@ namespace microgbt {
          *
          * @param colIndex Feature / column of above matrix
          */
-        inline Eigen::RowVectorXi sortedColumnIndices(long colIndex) const {
-            return _sortedMatrixIdx.col(colIndex);
-        }
+        inline Eigen::RowVectorXi sortedColumnIndices(long colIndex) const { return _sortedMatrixIdx.col(colIndex); }
     };
 }

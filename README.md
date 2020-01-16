@@ -5,7 +5,7 @@
 
 # microGBT
 
-microGBT is a minimalistic ([650 LOC](NOTES.md)) Gradient Boosting Trees implementation in C++11 following [xgboost's paper](https://arxiv.org/abs/1603.02754), i.e., the tree building process is based on the gradient and Hessian vectors (Newton-Raphson method).
+microGBT is a minimalistic ([606 LOC](NOTES.md)) Gradient Boosting Trees implementation in C++11 following [xgboost's paper](https://arxiv.org/abs/1603.02754), i.e., the tree building process is based on the gradient and Hessian vectors (Newton-Raphson method).
 
 A minimalist Python API is available using [pybind11](https://github.com/pybind/pybind11). To use it,
 

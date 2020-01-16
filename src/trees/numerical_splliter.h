@@ -51,7 +51,7 @@ namespace microgbt {
         SplitInfo optimumGainByFeature(const Dataset &dataset,
                                        const Vector &gradient,
                                        const Vector &hessian,
-                                       int featureId) const {
+                                       long featureId) const {
 
             // Sort the feature by value and return permutation of indices (i.e., argsort)
             const Eigen::RowVectorXi& sortedInstanceIds = dataset.sortedColumnIndices(featureId);
@@ -60,7 +60,7 @@ namespace microgbt {
             Vector cum_sum_G(dataset.nRows()), cum_sum_H(dataset.nRows());
             double cum_sum_g = 0.0, cum_sum_h = 0.0;
             for (size_t i = 0 ; i < dataset.nRows(); i++) {
-                size_t idx = sortedInstanceIds[i];
+                long idx = sortedInstanceIds[i];
                 cum_sum_g += gradient[idx];
                 cum_sum_h += hessian[idx];
                 cum_sum_G[i] = cum_sum_g;
@@ -78,7 +78,7 @@ namespace microgbt {
                     - gainPerOrderedSampleIndex.begin();
             double bestGain = gainPerOrderedSampleIndex[bestGainIndex];
             double bestSplitNumericValue = dataset.row(sortedInstanceIds[bestGainIndex])[featureId];
-            size_t bestSortedIndex = bestGainIndex + 1;
+            long bestSortedIndex = bestGainIndex + 1;
 
             return SplitInfo(sortedInstanceIds, bestGain, bestSplitNumericValue, bestSortedIndex);
         }
@@ -92,13 +92,13 @@ namespace microgbt {
                                 const Vector &gradient,
                                 const Vector &hessian) const override {
 
-            size_t numFeatures = trainSet.numFeatures();
+            long numFeatures = trainSet.numFeatures();
 
             // 1) For each tree node, enumerate over all features:
             // 2) For each feature, sorted the instances by feature numeric value
             //    - Compute gain for every feature (column of design matrix)
             std::vector<SplitInfo> gainPerFeature(numFeatures);
-            for (size_t featureId = 0; featureId < numFeatures; featureId++) {
+            for (long featureId = 0; featureId < numFeatures; featureId++) {
                 gainPerFeature[featureId] = optimumGainByFeature(trainSet, gradient, hessian, featureId);
             }
 

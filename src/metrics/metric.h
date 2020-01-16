@@ -3,9 +3,9 @@
 #include<cmath>
 #include <Eigen/Dense>
 
-namespace microgbt {
+#include "../types.h"
 
-    using Vector = std::vector<double>;
+namespace microgbt {
 
     /**
      * A generic metric that is defined by:

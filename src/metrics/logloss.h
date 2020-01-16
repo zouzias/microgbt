@@ -3,11 +3,10 @@
 #include<algorithm>
 #include<random>
 #include<cmath>
+
 #include "metric.h"
 
 namespace microgbt {
-
-    using Vector = std::vector<double>;
 
     /**
      * Log loss metric
@@ -23,9 +22,7 @@ namespace microgbt {
 
     public:
 
-        LogLoss() {
-            _eps = 10e-8;
-        }
+        LogLoss() { _eps = 10e-8; }
 
         /**
          * Clips value in numeric interval [_eps, 1 - _eps]
@@ -34,18 +31,16 @@ namespace microgbt {
          * @return
          */
         inline double clip(double value) const {
-            if ( value > 1 - _eps )
+            if ( value > 1 - _eps ) {
                 return 1 - _eps;
-
-            if ( value < _eps)
+            } else if ( value < _eps) {
                 return _eps;
+            }
 
             return value;
         }
 
-        inline double logit(double score) const {
-            return clip(1.0 / (1 + exp(-score)));
-        }
+        inline double logit(double score) const { return clip(1.0 / (1 + exp(-score))); }
 
         Vector gradients(const Vector &predictions, const Vector &labels) const override {
             unsigned long sz = predictions.size();
@@ -80,9 +75,6 @@ namespace microgbt {
             return - loss / n;
         }
 
-        double scoreToPrediction(double score) const override {
-            return logit(score);
-        }
-
+        double scoreToPrediction(double score) const override { return logit(score); }
     };
 }

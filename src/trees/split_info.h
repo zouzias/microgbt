@@ -1,13 +1,12 @@
 #pragma once
 #include <utility>
 #include <Eigen/Dense>
-#include<vector>
+#include <vector>
+
+#include "../types.h"
 
 
 namespace microgbt {
-
-        using VectorD = std::vector<double>;
-        using VectorT = std::vector<size_t>;
 
         /**
          * SplitInfo contains information of a binary tree split such as
@@ -22,10 +21,10 @@ namespace microgbt {
             double _bestGain = std::numeric_limits<double>::min(), _bestSplitNumericValue = 0.0;
 
             // Keep track of best sorted sample index
-            size_t _bestSortedIndex = -1;
+            size_t _bestSortedIndex = 0;
 
             // Feature index on which best gain was attained
-            size_t _bestFeatureId = -1;
+            long _bestFeatureId = -1;
 
             public:
 
@@ -50,24 +49,16 @@ namespace microgbt {
 
             bool operator < (const SplitInfo& rhs) const { return this->_bestGain <= rhs.bestGain(); }
 
-            inline double bestGain() const {
-                return _bestGain;
-            }
+            inline double bestGain() const { return _bestGain; }
 
-            inline double splitValue() const {
-                return _bestSplitNumericValue;
-            }
+            inline double splitValue() const { return _bestSplitNumericValue; }
 
-            void setBestFeatureId(size_t bestFeatureId) {
-                _bestFeatureId = bestFeatureId;
-            }
-            inline size_t getBestFeatureId() const {
-                return _bestFeatureId;
-            }
+            void setBestFeatureId(size_t bestFeatureId) { _bestFeatureId = bestFeatureId; }
+
+            inline long getBestFeatureId() const { return _bestFeatureId; }
 
             VectorT getLeftLocalIds() const {
-                return VectorT(_sortedFeatureIndices.data(),
-                        _sortedFeatureIndices.data() + _bestSortedIndex);
+                return VectorT(_sortedFeatureIndices.data(), _sortedFeatureIndices.data() + _bestSortedIndex);
             }
 
             VectorT getRightLocalIds() const {

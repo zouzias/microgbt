@@ -1,12 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <string>
-#include <map>
-#include <memory>
-#include <numeric>
-#include <cmath>
-#include <algorithm>
+
 #include "treenode.h"
 #include "split_info.h"
 #include "../metrics/metric.h"
@@ -63,8 +58,6 @@ namespace microgbt {
          * @param sample A sample as row vector
          * @return Score of tree
          */
-        double score(const Eigen::RowVectorXd &sample) const {
-            return _root->score(sample);
-        }
+        double score(const Eigen::RowVectorXd &sample) const { return _root->score(sample); }
     };
-} // namespace microgbt
+}
