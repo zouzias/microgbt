@@ -26,4 +26,4 @@ namespace microgbt {
                                         const Vector &gradient,
                                         const Vector &hessian) const = 0;
     };
-} // namespace microgbt
+}

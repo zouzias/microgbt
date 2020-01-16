@@ -12,6 +12,7 @@
 #include "../dataset.h"
 #include "split_info.h"
 #include "numerical_splliter.h"
+#include "../types.h"
 
 
 namespace microgbt {
@@ -52,7 +53,7 @@ namespace microgbt {
             _minSplitGain = minSplitGain;
             _maxDepth = maxDepth;
             _minTreeSize = minTreeSize;
-            _splitFeatureIndex = -1.0;
+            _splitFeatureIndex = -1;
             _isLeaf = false;
             _splitNumericValue = std::numeric_limits<double>::min();
             _weight = 0.0;
@@ -163,4 +164,4 @@ namespace microgbt {
             }
         }
     };
-} // namespace microgbt
+}
