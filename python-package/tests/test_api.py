@@ -1,4 +1,3 @@
-import pytest
 import microgbtpy
 import numpy as np
 import pandas as pd
