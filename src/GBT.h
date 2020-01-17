@@ -3,6 +3,7 @@
 #include<iostream>
 #include <memory>
 #include <chrono>
+#include <omp.h>
 
 #include "dataset.h"
 #include "trees/tree.h"
@@ -99,6 +100,9 @@ namespace microgbt {
          * @param earlyStoppingRounds number of rounds to consider for early stopping, i.e., if there is not improvement
          */
         void train(const Dataset &trainSet, const Dataset &validSet, int numBoostRound, int earlyStoppingRounds) {
+
+            // Allow nested threading in OpenMP
+            omp_set_max_active_levels(_maxDepth + 1);
 
             long bestIteration = 0;
             double learningRate = _shrinkageRate, bestValidationLoss = std::numeric_limits<double>::max();

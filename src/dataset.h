@@ -69,6 +69,7 @@ namespace microgbt {
             // By default, all rows are included in the dataset
             std::iota(_rowIndices.begin(), _rowIndices.end(), 0);
 
+            #pragma omp parallel for schedule(static)
             for ( long j = 0; j < X.cols(); j++) {
                 _sortedMatrixIdx.col(j) = sortIndices(j);
             }
