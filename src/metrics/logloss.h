@@ -30,7 +30,7 @@ namespace microgbt {
          * @param value
          * @return
          */
-        inline double clip(double value) const {
+        inline double clip(double value) const noexcept {
             if ( value > 1 - _eps ) {
                 return 1 - _eps;
             } else if ( value < _eps) {
@@ -42,7 +42,7 @@ namespace microgbt {
 
         inline double logit(double score) const { return clip(1.0 / (1 + exp(-score))); }
 
-        Vector gradients(const Vector &predictions, const Vector &labels) const override {
+        Vector gradients(const Vector &predictions, const Vector &labels) const noexcept override {
             unsigned long sz = predictions.size();
             Vector gradients(sz);
 
@@ -53,7 +53,7 @@ namespace microgbt {
             return gradients;
         }
 
-        Vector hessian(const Vector &predictions) const override {
+        Vector hessian(const Vector &predictions) const noexcept override {
             unsigned long sz = predictions.size();
             Vector hessians(sz);
 
@@ -64,7 +64,7 @@ namespace microgbt {
             return hessians;
         }
 
-        double lossAt(const Vector &predictions, const Vector &labels) const override {
+        double lossAt(const Vector &predictions, const Vector &labels) const noexcept override {
             size_t n = predictions.size();
             double loss = 0.0;
 
@@ -75,6 +75,6 @@ namespace microgbt {
             return - loss / n;
         }
 
-        inline double scoreToPrediction(double score) const override { return logit(score); }
+        inline double scoreToPrediction(double score) const noexcept override { return logit(score); }
     };
 }

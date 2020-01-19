@@ -19,7 +19,8 @@ namespace microgbt {
      */
     class GBT {
 
-        int _maxDepth = 0, _metricName = 0, _minTreeSize = 0, _histogramNumBins = 255;
+        int _maxDepth = 0, _metricName = 0, _minTreeSize = 0;
+        size_t _histogramNumBins = 255;
         double _lambda = 0, _gamma = 0.0, _minSplitGain = 0.0, _learningRate = 0.0, _shrinkageRate = 0.0;
         long _bestIteration = 0;
         std::vector<Tree> _trees;
@@ -59,10 +60,10 @@ namespace microgbt {
         explicit GBT(const std::map<std::string, double>& params): GBT() {
             this->_lambda = params.at("lambda");
             this->_gamma = params.at("gamma");
-            this->_histogramNumBins = static_cast<int>(params.at("max_bin"));
+            this->_histogramNumBins = static_cast<size_t>(params.at("max_bin"));
             this->_shrinkageRate = params.at("shrinkage_rate");
             this->_minSplitGain = params.at("min_split_gain");
-            this->_minTreeSize = params.at("min_tree_size");
+            this->_minTreeSize = static_cast<int>(params.at("min_tree_size"));
             this->_learningRate = params.at("learning_rate");
             this->_maxDepth = static_cast<int>(params.at("max_depth"));
             this->_metricName = static_cast<int>(params.at("metric"));
@@ -79,7 +80,7 @@ namespace microgbt {
 
         inline double lambda() const { return _lambda; }
 
-        inline int maxHistogramBin() const { return _histogramNumBins; }
+        inline size_t maxHistogramBin() const { return _histogramNumBins; }
 
         inline double minSplitGain() const { return _minSplitGain; }
 
@@ -152,14 +153,16 @@ namespace microgbt {
 
                 // Update train and validation loss
                 std::cout << "[Evaluating training / validation losses]" << std::endl;
+                auto startEvalutation = std::chrono::high_resolution_clock::now();
                 Vector trainPreds = predictDataset(trainSet);
                 double trainLoss = _metric->lossAt(trainPreds, trainSet.y());
                 Vector validPreds = predictDataset(validSet);
                 double currentValidationLoss = _metric->lossAt(validPreds, validSet.y());
 
                 auto endTimestamp = std::chrono::high_resolution_clock::now();
-                auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTimestamp - startTimestamp ).count();
-                std::cout << "[Duration: " << duration << " millis] | [Train Loss]: " << trainLoss
+                auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTimestamp - startTimestamp).count();
+                auto durationEval = std::chrono::duration_cast<std::chrono::milliseconds>( endTimestamp - startEvalutation).count();
+                std::cout << "[Duration total / evaluation: " << duration << " / " << durationEval << " millis] | [Train Loss]: " << trainLoss
                     << " | [Valid Loss]: " << bestValidationLoss <<std::endl;
 
                 // Update best iteration / best validation error

@@ -1,6 +1,7 @@
 #pragma once
 #include<memory>
 #include<map>
+#include <utility>
 #include<vector>
 #include<string>
 #include<algorithm>
@@ -32,7 +33,10 @@ namespace microgbt {
         bool _isLeaf;
 
         // Pointers to left and right subtrees
-        std::unique_ptr<TreeNode> leftSubTree, rightSubTree;
+        std::shared_ptr<TreeNode> leftSubTree, rightSubTree;
+
+        // Sibling of node, nullptr if root
+        std::shared_ptr<TreeNode> _sibling = nullptr;
 
         // Feature index on which the split took place
         long _splitFeatureIndex;
@@ -121,29 +125,40 @@ namespace microgbt {
             this->_splitFeatureIndex = bestGain.getBestFeatureId();
             this->_splitNumericValue = bestGain.splitValue();
 
-            // Recurse on left and right subtree
             Dataset leftDataset(trainSet, bestGain, SplitInfo::Side::Left);
             VectorD leftGradient = bestGain.split(gradient, SplitInfo::Side::Left);
             VectorD leftHessian = bestGain.split(hessian, SplitInfo::Side::Left);
-
-            // Create Histogram on left subtree
-            for (long j = 0 ; j < leftDataset.numFeatures(); j++){
-                leftDataset.histogram(j)->fillValues(leftDataset.col(j), leftGradient, leftHessian);
-            }
-
-            this->leftSubTree = std::make_unique<TreeNode>(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
-            leftSubTree->build(leftDataset, leftGradient, leftHessian, shrinkage, depth + 1);
 
             Dataset rightDataset(trainSet, bestGain, SplitInfo::Side::Right);
             VectorD rightGradient = bestGain.split(gradient, SplitInfo::Side::Right);
             VectorD rightHessian = bestGain.split(hessian, SplitInfo::Side::Right);
 
-            // Create Histogram on right subtree
-            for (long j = 0 ; j < rightDataset.numFeatures(); j++){
-                rightDataset.histogram(j)->fillValues(rightDataset.col(j), rightGradient, rightHessian);
+
+            if ( bestGain.getLeftSize() < bestGain.getRightSize()) {
+
+                // Compute the left using input data
+                for (long j = 0 ; j < leftDataset.numFeatures(); j++){
+                    leftDataset.histogram(j)->fillValues(leftDataset.col(j), leftGradient, leftHessian);
+                    rightDataset.histogram(j)->subtract(*leftDataset.histogram(j));
+                }
+
+
+            }
+            else {
+                // Create Histogram on right subtree
+                for (long j = 0 ; j < rightDataset.numFeatures(); j++){
+                    rightDataset.histogram(j)->fillValues(rightDataset.col(j), rightGradient, rightHessian);
+                    leftDataset.histogram(j)->subtract(*rightDataset.histogram(j));
+                }
             }
 
+
+            this->leftSubTree = std::make_unique<TreeNode>(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
+            leftSubTree->setSibling(rightSubTree);
+            leftSubTree->build(leftDataset, leftGradient, leftHessian, shrinkage, depth + 1);
+
             this->rightSubTree = std::make_unique<TreeNode>(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
+            rightSubTree->setSibling(leftSubTree);
             rightSubTree->build(rightDataset, rightGradient, rightHessian, shrinkage, depth + 1);
         }
 
@@ -161,6 +176,15 @@ namespace microgbt {
             } else {
                 return this->rightSubTree->score(sample);
             }
+        }
+
+        // Get sibling
+        std::shared_ptr<TreeNode> getSibling() const {
+           return _sibling;
+        }
+
+        void setSibling(const std::shared_ptr<TreeNode>& treeNode) {
+            _sibling = treeNode;
         }
     };
 }

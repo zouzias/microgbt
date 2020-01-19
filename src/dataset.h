@@ -67,7 +67,7 @@ namespace microgbt {
             }
 
             _featureHistograms = std::vector<std::unique_ptr<Histogram>>();
-            for (size_t j = 0 ; j < dataset.numFeatures(); j++) {
+            for (long j = 0 ; j < dataset.numFeatures(); j++) {
                 Histogram* h = dataset.histogram(j);
                 _featureHistograms.push_back(std::make_unique<Histogram>(*h));
             }
@@ -105,12 +105,9 @@ namespace microgbt {
             return _X->coeff(_rowIndices[rowIndex], colIndex);
         }
 
-        Histogram* histogram(long colIndex) const {
-            return _featureHistograms[colIndex].get();
-        }
+        Histogram* histogram(long colIndex) const { return _featureHistograms[colIndex].get(); }
 
-        void constructHistograms(int histogramNumBins) {
-            // Create histogram per feature
+        void constructHistograms(size_t histogramNumBins) {
             for (long j = 0 ; j < numFeatures(); j++){
                 _featureHistograms.push_back(std::make_unique<Histogram>(Histogram(col(j), histogramNumBins)));
             }

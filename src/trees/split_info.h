@@ -55,6 +55,14 @@ namespace microgbt {
 
             std::shared_ptr<VectorT>  getRightLocalIds() const { return std::make_shared<VectorT>(_rightSplit); }
 
+            long getLeftSize() const {
+                return _leftSplit.size();
+            }
+
+            long getRightSize() const {
+                return _rightSplit.size();
+            }
+
             /**
              * Split a vector based on a side, i.e., left and right side.
              *

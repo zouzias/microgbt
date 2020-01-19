@@ -16,6 +16,9 @@ namespace microgbt {
 
         double SMALLEST_BIN_LENGTH = 10e-6;
 
+        // Histogram limits
+        double _minValue = std::numeric_limits<double>::max(), _maxValue = std::numeric_limits<double>::min(), _binLength = 0;
+
         // Number of bins / samples
         long _numBins = 0, _numSamples = 0;
 
@@ -24,9 +27,6 @@ namespace microgbt {
 
         // Histogram counts
         std::vector<long> _count;
-
-        // Histogram limits
-        double _minValue = std::numeric_limits<double>::max(), _maxValue = std::numeric_limits<double>::min(), _binLength = 0;
 
     public:
 
@@ -117,7 +117,7 @@ namespace microgbt {
         }
 
         /**
-         * Substract two histograms. Subtract the gradient / hessian values of the histogram assuming identical
+         * Subtract two histograms. Subtract the gradient / hessian values of the histogram assuming identical
          * histogram bins.
          *
          * @param other
@@ -132,6 +132,18 @@ namespace microgbt {
             }
 
             return h;
+        }
+
+        /**
+         * Subtract with other histogram
+         * @param other
+         */
+        void subtract(const Histogram &other) {
+            for (long i = 0 ; i < _numBins; i++) {
+                _gradientHist[i] -= other._gradientHist[i];
+                _hessianHist[i] -= other._hessianHist[i];
+                _count[i] -= other._count[i];
+            }
         }
     };
 }
