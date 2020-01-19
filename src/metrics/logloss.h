@@ -30,19 +30,15 @@ public:
          * @param value
          * @return
          */
-    inline double clip(double value) const
-    {
-        if (value > 1 - _eps)
-        {
-            return 1 - _eps;
-        }
-        else if (value < _eps)
-        {
-            return _eps;
-        }
+        inline double clip(double value) const noexcept {
+            if ( value > 1 - _eps ) {
+                return 1 - _eps;
+            } else if ( value < _eps) {
+                return _eps;
+            }
 
-        return value;
-    }
+            return value;
+        }
 
     inline double logit(double score) const { return clip(1.0 / (1 + exp(-score))); }
 
@@ -86,6 +82,6 @@ public:
         return -loss / n;
     }
 
-    inline double scoreToPrediction(double score) const override { return logit(score); }
-};
-} // namespace microgbt
+        inline double scoreToPrediction(double score) const noexcept override { return logit(score); }
+    };
+}

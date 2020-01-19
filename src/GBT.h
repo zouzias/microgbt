@@ -21,11 +21,12 @@ namespace microgbt
 class GBT
 {
 
-    int _maxDepth = 0, _metricName = 0, _minTreeSize = 0, _histogramNumBins = 255;
-    double _lambda = 0, _gamma = 0.0, _minSplitGain = 0.0, _learningRate = 0.0, _shrinkageRate = 0.0;
-    long _bestIteration = 0;
-    std::vector<Tree> _trees;
-    std::unique_ptr<Metric> _metric;
+        int _maxDepth = 0, _metricName = 0, _minTreeSize = 0;
+        size_t _histogramNumBins = 255;
+        double _lambda = 0, _gamma = 0.0, _minSplitGain = 0.0, _learningRate = 0.0, _shrinkageRate = 0.0;
+        long _bestIteration = 0;
+        std::vector<Tree> _trees;
+        std::unique_ptr<Metric> _metric;
 
     /**
          * Return a single decision/regression tree given training data, gradient, hessian vectors and shrinkage rate
@@ -58,30 +59,30 @@ class GBT
 
         GBT() = default;
 
-    explicit GBT(const std::map<std::string, double>& params): GBT() {
-        this->_lambda = params.at("lambda");
-        this->_gamma = params.at("gamma");
-        this->_histogramNumBins = static_cast<int>(params.at("max_bin"));
-        this->_shrinkageRate = params.at("shrinkage_rate");
-        this->_minSplitGain = params.at("min_split_gain");
-        this->_minTreeSize = params.at("min_tree_size");
-        this->_learningRate = params.at("learning_rate");
-        this->_maxDepth = static_cast<int>(params.at("max_depth"));
-        this->_metricName = static_cast<int>(params.at("metric"));
+        explicit GBT(const std::map<std::string, double>& params): GBT() {
+            this->_lambda = params.at("lambda");
+            this->_gamma = params.at("gamma");
+            this->_histogramNumBins = static_cast<size_t>(params.at("max_bin"));
+            this->_shrinkageRate = params.at("shrinkage_rate");
+            this->_minSplitGain = params.at("min_split_gain");
+            this->_minTreeSize = static_cast<int>(params.at("min_tree_size"));
+            this->_learningRate = params.at("learning_rate");
+            this->_maxDepth = static_cast<int>(params.at("max_depth"));
+            this->_metricName = static_cast<int>(params.at("metric"));
 
-        if (_metricName == 0){
-            this->_metric = std::unique_ptr<Metric>(new LogLoss());
+            if (_metricName == 0){
+                this->_metric = std::unique_ptr<Metric>(new LogLoss());
+            }
+            else {
+                this->_metric = std::unique_ptr<Metric>(new RMSE());
+            }
         }
-        else {
-            this->_metric = std::unique_ptr<Metric>(new RMSE());
-        }
-    }
 
     inline int maxDepth() const { return _maxDepth; }
 
     inline double lambda() const { return _lambda; }
 
-    inline int maxHistogramBin() const { return _histogramNumBins; }
+        inline size_t maxHistogramBin() const { return _histogramNumBins; }
 
     inline double minSplitGain() const { return _minSplitGain; }
 
@@ -125,62 +126,64 @@ class GBT
          * @param numBoostRound  Number of boosting rounds
          * @param earlyStoppingRounds number of rounds to consider for early stopping, i.e., if there is not improvement
          */
-    void train(const Dataset &trainSet, const Dataset &validSet, int numBoostRound, int earlyStoppingRounds) {
+        void train(const Dataset &trainSet, const Dataset &validSet, int numBoostRound, int earlyStoppingRounds) {
 
-        long bestIteration = 0;
-        double learningRate = _shrinkageRate, bestValidationLoss = std::numeric_limits<double>::max();
+            long bestIteration = 0;
+            double learningRate = _shrinkageRate, bestValidationLoss = std::numeric_limits<double>::max();
 
-        // For each iteration, grow an additional tree
-        for (long iterCount = 0; iterCount < numBoostRound; iterCount++) {
+            // For each iteration, grow an additional tree
+            for (long iterCount = 0; iterCount < numBoostRound; iterCount++) {
 
-            std::cout << "[Iteration: " << iterCount << "]" << std::endl;
-            auto startTimestamp = std::chrono::high_resolution_clock::now();
+                std::cout << "[Iteration: " << iterCount << "]" << std::endl;
+                auto startTimestamp = std::chrono::high_resolution_clock::now();
 
-            // Current predictions
-            Vector scores = predictDataset(trainSet);
+                // Current predictions
+                Vector scores = predictDataset(trainSet);
 
-            // Compute gradient and Hessian with respect to prior predictions
-            std::cout << "[Computing gradients/Hessians vectors]" << std::endl;
-            Vector gradient = _metric->gradients(scores, trainSet.y());
-            Vector hessian = _metric->hessian(scores);
+                // Compute gradient and Hessian with respect to prior predictions
+                std::cout << "[Computing gradients/Hessians vectors]" << std::endl;
+                Vector gradient = _metric->gradients(scores, trainSet.y());
+                Vector hessian = _metric->hessian(scores);
 
-            // Grow a new tree learner
-            std::cout << "[Building next tree...]" << std::endl;
-            Tree tree = buildTree(trainSet, gradient, hessian, learningRate);
-            std::cout << "[Tree is built successfully]" << std::endl;
+                // Grow a new tree learner
+                std::cout << "[Building next tree...]" << std::endl;
+                Tree tree = buildTree(trainSet, gradient, hessian, learningRate);
+                std::cout << "[Tree is built successfully]" << std::endl;
 
-            // Update the learning rate
-            learningRate *= _learningRate;
+                // Update the learning rate
+                learningRate *= _learningRate;
 
-            // Append the additional tree
-            _trees.push_back(tree);
+                // Append the additional tree
+                _trees.push_back(tree);
 
-            // Update train and validation loss
-            std::cout << "[Evaluating training / validation losses]" << std::endl;
-            Vector trainPreds = predictDataset(trainSet);
-            double trainLoss = _metric->lossAt(trainPreds, trainSet.y());
-            Vector validPreds = predictDataset(validSet);
-            double currentValidationLoss = _metric->lossAt(validPreds, validSet.y());
+                // Update train and validation loss
+                std::cout << "[Evaluating training / validation losses]" << std::endl;
+                auto startEvalutation = std::chrono::high_resolution_clock::now();
+                Vector trainPreds = predictDataset(trainSet);
+                double trainLoss = _metric->lossAt(trainPreds, trainSet.y());
+                Vector validPreds = predictDataset(validSet);
+                double currentValidationLoss = _metric->lossAt(validPreds, validSet.y());
 
-            auto endTimestamp = std::chrono::high_resolution_clock::now();
-            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTimestamp - startTimestamp ).count();
-            std::cout << "[Duration: " << duration << " millis] | [Train Loss]: " << trainLoss
-                << " | [Valid Loss]: " << bestValidationLoss <<std::endl;
+                auto endTimestamp = std::chrono::high_resolution_clock::now();
+                auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTimestamp - startTimestamp).count();
+                auto durationEval = std::chrono::duration_cast<std::chrono::milliseconds>( endTimestamp - startEvalutation).count();
+                std::cout << "[Duration total / evaluation: " << duration << " / " << durationEval << " millis] | [Train Loss]: " << trainLoss
+                    << " | [Valid Loss]: " << bestValidationLoss <<std::endl;
 
-            // Update best iteration / best validation error
-            if (currentValidationLoss < bestValidationLoss) {
-                bestValidationLoss = currentValidationLoss;
-                bestIteration = iterCount;
+                // Update best iteration / best validation error
+                if (currentValidationLoss < bestValidationLoss) {
+                    bestValidationLoss = currentValidationLoss;
+                    bestIteration = iterCount;
+                }
+
+                // Check for early stopping
+                // Namely, if there is no improvement in the last early_stopping_rounds, then stop
+                if (iterCount - bestIteration >= earlyStoppingRounds) {
+                    std::cout << "Early stopping, best iteration is:" << bestIteration;
+                    std::cout << "Train Loss: " << trainLoss << "| Valid Loss: " << bestValidationLoss <<std::endl;
+                    break;
+                }
             }
-
-            // Check for early stopping
-            // Namely, if there is no improvement in the last early_stopping_rounds, then stop
-            if (iterCount - bestIteration >= earlyStoppingRounds) {
-                std::cout << "Early stopping, best iteration is:" << bestIteration;
-                std::cout << "Train Loss: " << trainLoss << "| Valid Loss: " << bestValidationLoss <<std::endl;
-                break;
-            }
-        }
 
         _bestIteration = bestIteration;
     }

@@ -56,14 +56,18 @@ class NumericalSplitter : public Splitter
 
             // Cummulative sum of gradients and Hessian
             const Histogram* histogram = dataset.histogram(featureId);
+            long cum_sum_total_size = 0;
             long numBins = histogram->numBins();
             VectorD cum_sum_G(numBins), cum_sum_H(numBins);
+            VectorT cum_sum_size(numBins);
             double cum_sum_g = 0.0, cum_sum_h = 0.0;
             for (long i = 0 ; i < numBins; i++) {
                 cum_sum_g += histogram->gradientAtBin(i);
                 cum_sum_h += histogram->hessianAtBin(i);
+                cum_sum_total_size += histogram->getCount(i);
                 cum_sum_G[i] = cum_sum_g;
                 cum_sum_H[i] = cum_sum_h;
+                cum_sum_size[i] = cum_sum_total_size;
             }
 
             // For each feature, compute split gain and keep the split index with maximum gain
@@ -79,8 +83,8 @@ class NumericalSplitter : public Splitter
             double bestSplitNumericValue = histogram->upperThreshold(bestGainIndex);
 
             VectorT leftSplit, rightSplit;
-            leftSplit.reserve(dataset.nRows());
-            rightSplit.reserve(dataset.nRows());
+            leftSplit.reserve(cum_sum_size[bestGainIndex]);
+            rightSplit.reserve(dataset.nRows() - cum_sum_size[bestGainIndex]);
             for (long i = 0; i < dataset.nRows(); i++) {
                 if ( dataset.coeff(i, featureId) < bestSplitNumericValue) {
                     leftSplit.push_back(i);
@@ -88,6 +92,7 @@ class NumericalSplitter : public Splitter
                     rightSplit.push_back(i);
                 }
             }
+
 
             return SplitInfo(bestGain, bestSplitNumericValue, leftSplit, rightSplit);
         }
