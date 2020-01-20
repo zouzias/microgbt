@@ -5,6 +5,7 @@
 #include <chrono>
 #include <memory>
 #include <chrono>
+#include <algorithm>
 
 #include "dataset.h"
 #include "trees/tree.h"

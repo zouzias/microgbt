@@ -131,31 +131,29 @@ namespace microgbt {
             VectorD rightGradient = bestGain.split(gradient, SplitInfo::Side::Right);
             VectorD rightHessian = bestGain.split(hessian, SplitInfo::Side::Right);
 
+            // Find the smallest side of the split
+            // and compute histogram from input dataset
+            if ( bestGain.getLeftSize() < bestGain.getRightSize()) {
 
-            if (bestGain.getLeftSize() < bestGain.getRightSize()) {
-
-                // Compute the left using input data
-                for (long j = 0; j < leftDataset.numFeatures(); j++) {
+                // Compute the left histogram using input data and the right histogram by substraction
+                for (long j = 0 ; j < leftDataset.numFeatures(); j++){
                     leftDataset.histogram(j)->fillValues(leftDataset.col(j), leftGradient, leftHessian);
                     rightDataset.histogram(j)->subtract(*leftDataset.histogram(j));
                 }
-
-
-            } else {
-                // Create Histogram on right subtree
-                for (long j = 0; j < rightDataset.numFeatures(); j++) {
+            }
+            else {
+                for (long j = 0 ; j < rightDataset.numFeatures(); j++){
                     rightDataset.histogram(j)->fillValues(rightDataset.col(j), rightGradient, rightHessian);
                     leftDataset.histogram(j)->subtract(*rightDataset.histogram(j));
                 }
             }
 
-
+            // Recurse on left subtree
             this->leftSubTree = std::make_unique<TreeNode>(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
-            leftSubTree->setSibling(rightSubTree);
             leftSubTree->build(leftDataset, leftGradient, leftHessian, shrinkage, depth + 1);
 
+            // Recurse on right subtree
             this->rightSubTree = std::make_unique<TreeNode>(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
-            rightSubTree->setSibling(leftSubTree);
             rightSubTree->build(rightDataset, rightGradient, rightHessian, shrinkage, depth + 1);
         }
 
@@ -173,6 +171,7 @@ namespace microgbt {
             } else {
                 return this->rightSubTree->score(sample);
             }
+        }
 
             // Get sibling
             std::shared_ptr<TreeNode> getSibling() const {
@@ -183,5 +182,4 @@ namespace microgbt {
                 _sibling = treeNode;
             }
         };
-    }
 }
