@@ -7,7 +7,7 @@ before_install:
   - sudo apt-get update -q
   - sudo apt-get install -q gcc g++ cmake libeigen3-dev git wget valgrind
   - sudo apt-get install -q build-essential libssl-dev libffi-dev python3-dev python3-pip
-  - travis_wait pip install --user cpp-coveralls pytest
+  - travis_wait pip3 install --user cpp-coveralls pytest
   - git submodule add -f https://github.com/pybind/pybind11.git # add pybind11 submodule
   - git submodule update --init --recursive
 
@@ -20,7 +20,7 @@ script:
   - ./bin/unit_tests
   - popd
   - ./dev-scripts/runInstallPyPackage.sh # install microgbtpy
-  - pushd python-package && pytest && popd
+  - pushd python-package && python3 -m pytest && popd
 
 after_success:
   - coveralls --include src --include include --gcov-options '\-lp' --root .. --build-root .;
