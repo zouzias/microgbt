@@ -5,8 +5,8 @@
 #include <numeric>
 #include <memory>
 
+#include "histogram.h"
 #include "trees/split_info.h"
-#include "types.h"
 
 namespace microgbt {
 
@@ -21,57 +21,21 @@ namespace microgbt {
         std::shared_ptr<MatrixType> _X;
 
         // Target vector
-        std::shared_ptr<Vector> _y;
-
-        SortedMatrixType _sortedMatrixIdx;
+        std::shared_ptr<VectorD> _y;
 
         VectorT _rowIndices;
 
-        /**
-         * Return sorted indices from an Eigen vector
-         * @param v
-         * @return
-         */
-         Eigen::VectorXi sortIndices(long colIndex) const{
-
-            // initialize original index locations
-            Eigen::VectorXd v = col(colIndex);
-            long n = v.size();
-
-            Eigen::VectorXi idx(n);
-            // idx contains now 0,1,...,v.size() - 1
-            std::iota(idx.data(), idx.data() + idx.size(), 0);
-
-            // sort indexes based on comparing values in v
-            std::sort(idx.data(), idx.data() + idx.size(),
-                 [&v](long i1, long i2) {return v[i1] < v[i2];});
-
-            return idx;
-        }
-
-        inline Eigen::RowVectorXd col(long colIndex) const {
-            Eigen::RowVectorXd column(_rowIndices.size());
-            for (size_t i = 0; i < _rowIndices.size(); i++) {
-                column[i] = _X->coeffRef(_rowIndices[i], colIndex);
-            }
-            return column;
-        }
+        std::vector<std::unique_ptr<Histogram>> _featureHistograms;
 
     public:
 
         Dataset() = default;
 
-        Dataset(const MatrixType& X, const Vector &y):
-        _sortedMatrixIdx(X.rows(), X.cols()),
-        _rowIndices(y.size()){
+        Dataset(const MatrixType& X, const Vector &y): _rowIndices(y.size()){
             _X = std::make_shared<MatrixType>(X);
             _y = std::make_shared<Vector>(y);
             // By default, all rows are included in the dataset
             std::iota(_rowIndices.begin(), _rowIndices.end(), 0);
-
-            for ( long j = 0; j < X.cols(); j++) {
-                _sortedMatrixIdx.col(j) = sortIndices(j);
-            }
         }
 
 
@@ -88,38 +52,36 @@ namespace microgbt {
             _X = dataset.X();
             _y = dataset.yptr();
 
-            VectorT localIds;
+            std::shared_ptr<VectorT> localIndices;
             if (side == SplitInfo::Side::Left) {
-                localIds = bestGain.getLeftLocalIds();
+                localIndices = bestGain.getLeftLocalIds();
             } else {
-                localIds = bestGain.getRightLocalIds();
+                localIndices = bestGain.getRightLocalIds();
             }
 
-            _rowIndices = VectorT(localIds.size());
-            VectorT otherRowIndices = dataset.rowIter();
-            for (size_t i = 0 ; i < localIds.size(); i++) {
-                _rowIndices[i] = otherRowIndices[localIds[i]];
+            _rowIndices = VectorT();
+            _rowIndices.reserve(localIndices->size());
+            const VectorT &otherRowIndices = dataset.rowIter();
+            for (size_t i = 0 ; i < localIndices->size(); i++) {
+                _rowIndices.push_back(otherRowIndices[(*localIndices)[i]]);
             }
 
-            size_t rows = _rowIndices.size();
-            long cols = dataset.numFeatures();
-
-            _sortedMatrixIdx = SortedMatrixType(rows, cols);
-
-            for (long j = 0; j < cols; j++) {
-                _sortedMatrixIdx.col(j) = sortIndices(j);
+            _featureHistograms = std::vector<std::unique_ptr<Histogram>>();
+            for (long j = 0 ; j < dataset.numFeatures(); j++) {
+                Histogram* h = dataset.histogram(j);
+                _featureHistograms.push_back(std::make_unique<Histogram>(*h));
             }
         }
 
-        inline size_t nRows() const { return this->_rowIndices.size(); }
+        inline long nRows() const { return static_cast<long>(this->_rowIndices.size()); }
 
-        inline VectorT rowIter() const { return _rowIndices;}
+        inline VectorT rowIter() const { return _rowIndices; }
 
         inline long numFeatures() const { return this->_X->cols(); }
 
         inline std::shared_ptr<MatrixType> X() const { return _X; }
 
-        inline std::shared_ptr<Vector> yptr() const { return _y; }
+        inline std::shared_ptr<VectorD> yptr() const { return _y; }
 
         inline Vector y() const {
             Vector proj(_rowIndices.size());
@@ -131,15 +93,24 @@ namespace microgbt {
 
         inline Eigen::RowVectorXd row(long rowIndex) const { return _X->row(_rowIndices[rowIndex]); }
 
-        /**
-         * Sort the sample indices for a given feature index 'feature_id'.
-         *
-         * It returns sorted indices depending on type of feature (categorical or numeric):
-         * Categorical feature: performs mean target encoding (see feature/categorical branch)
-         * Numerical feature: natural sort on numeric value
-         *
-         * @param colIndex Feature / column of above matrix
-         */
-        inline Eigen::RowVectorXi sortedColumnIndices(long colIndex) const { return _sortedMatrixIdx.col(colIndex); }
+        inline VectorD col(long colIndex) const {
+            VectorD column(_rowIndices.size());
+            for (size_t i = 0; i < _rowIndices.size(); i++) {
+                column[i] = _X->coeffRef(_rowIndices[i], colIndex);
+            }
+            return column;
+        }
+
+        inline double coeff(long rowIndex, long colIndex) const {
+            return _X->coeff(_rowIndices[rowIndex], colIndex);
+        }
+
+        Histogram* histogram(long colIndex) const { return _featureHistograms[colIndex].get(); }
+
+        void constructHistograms(size_t histogramNumBins) {
+            for (long j = 0 ; j < numFeatures(); j++){
+                _featureHistograms.push_back(std::make_unique<Histogram>(Histogram(col(j), histogramNumBins)));
+            }
+        }
     };
 }

@@ -18,6 +18,7 @@ gbt.def(py::init<std::map<std::string, double> >())
         .def("min_split_gain", &microgbt::GBT::minSplitGain)
         .def("learning_rate", &microgbt::GBT::getLearningRate)
         .def("get_lambda", &microgbt::GBT::lambda)
+        .def("max_bin", &microgbt::GBT::maxHistogramBin)
         .def("best_iteration", &microgbt::GBT::getBestIteration);
 
 // Train API
@@ -47,6 +48,8 @@ gbt.def("__repr__",
                      repr += std::to_string(a.minSplitGain());
                      repr += ",lambda:";
                      repr += std::to_string(a.lambda());
+                     repr += ",max_bin:";
+                     repr += std::to_string(a.maxHistogramBin());
                      repr += "]";
                      return repr;
                  }

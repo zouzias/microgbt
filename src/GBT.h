@@ -1,14 +1,17 @@
 #pragma once
 #include <vector>
 #include<iostream>
+#include <chrono>
 #include <memory>
 #include <chrono>
+#include <algorithm>
 
 #include "dataset.h"
 #include "trees/tree.h"
 #include "metrics/metric.h"
 #include "metrics/logloss.h"
 #include "metrics/rmse.h"
+
 
 namespace microgbt {
 
@@ -17,9 +20,10 @@ namespace microgbt {
      */
     class GBT {
 
-        int _maxDepth, _metricName;
-        double _lambda, _gamma, _minSplitGain, _learningRate, _minTreeSize, _shrinkageRate;
-        long _bestIteration;
+        int _maxDepth = 0, _metricName = 0, _minTreeSize = 0;
+        size_t _histogramNumBins = 255;
+        double _lambda = 0, _gamma = 0.0, _minSplitGain = 0.0, _learningRate = 0.0, _shrinkageRate = 0.0;
+        long _bestIteration = 0;
         std::vector<Tree> _trees;
         std::unique_ptr<Metric> _metric;
 
@@ -31,10 +35,22 @@ namespace microgbt {
          * @param hessian Hessian vector: each coordinate corresponds to sample (row index)
          * @param shrinkageRate Shrinkage rate
          */
-        Tree buildTree(const Dataset &trainSet, const Vector& previousPreds, const Vector &gradient,
+        Tree buildTree(const Dataset &trainSet, const Vector &gradient,
                 const Vector &hessian, double shrinkageRate) const {
             Tree tree = Tree(_lambda, _minSplitGain, _minTreeSize, _maxDepth);
-            tree.build(trainSet, previousPreds, gradient, hessian, shrinkageRate);
+
+            auto startTimestamp = std::chrono::high_resolution_clock::now();
+            std::cout << "[Fill histogram values...]" << std::endl;
+
+            for (long j = 0 ; j < trainSet.numFeatures(); j++){
+                trainSet.histogram(j)->fillValues(trainSet.col(j), gradient, hessian);
+            }
+
+            auto endTimestamp = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTimestamp - startTimestamp ).count();
+            std::cout << "[Histograms build in " << duration << " millis ...]" << std::endl;
+
+            tree.build(trainSet, gradient, hessian, shrinkageRate);
             return tree;
         }
 
@@ -45,9 +61,10 @@ namespace microgbt {
         explicit GBT(const std::map<std::string, double>& params): GBT() {
             this->_lambda = params.at("lambda");
             this->_gamma = params.at("gamma");
+            this->_histogramNumBins = static_cast<size_t>(params.at("max_bin"));
             this->_shrinkageRate = params.at("shrinkage_rate");
             this->_minSplitGain = params.at("min_split_gain");
-            this->_minTreeSize = params.at("min_tree_size");
+            this->_minTreeSize = static_cast<int>(params.at("min_tree_size"));
             this->_learningRate = params.at("learning_rate");
             this->_maxDepth = static_cast<int>(params.at("max_depth"));
             this->_metricName = static_cast<int>(params.at("metric"));
@@ -63,6 +80,8 @@ namespace microgbt {
         inline int maxDepth() const { return _maxDepth; }
 
         inline double lambda() const { return _lambda; }
+
+        inline size_t maxHistogramBin() const { return _histogramNumBins; }
 
         inline double minSplitGain() const { return _minSplitGain; }
 
@@ -87,6 +106,11 @@ namespace microgbt {
                 int numBoostRound, int earlyStoppingRounds) {
 
             Dataset trainSet(trainX, trainY), validSet(validX, validY);
+
+            // Construct histograms
+            trainSet.constructHistograms(_histogramNumBins);
+            validSet.constructHistograms(_histogramNumBins);
+
             train(trainSet, validSet, numBoostRound, earlyStoppingRounds);
         }
 
@@ -119,7 +143,7 @@ namespace microgbt {
 
                 // Grow a new tree learner
                 std::cout << "[Building next tree...]" << std::endl;
-                Tree tree = buildTree(trainSet, scores, gradient, hessian, learningRate);
+                Tree tree = buildTree(trainSet, gradient, hessian, learningRate);
                 std::cout << "[Tree is built successfully]" << std::endl;
 
                 // Update the learning rate
@@ -130,14 +154,16 @@ namespace microgbt {
 
                 // Update train and validation loss
                 std::cout << "[Evaluating training / validation losses]" << std::endl;
+                auto startEvalutation = std::chrono::high_resolution_clock::now();
                 Vector trainPreds = predictDataset(trainSet);
                 double trainLoss = _metric->lossAt(trainPreds, trainSet.y());
                 Vector validPreds = predictDataset(validSet);
                 double currentValidationLoss = _metric->lossAt(validPreds, validSet.y());
 
                 auto endTimestamp = std::chrono::high_resolution_clock::now();
-                auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTimestamp - startTimestamp ).count();
-                std::cout << "[Duration: " << duration << " millis] | [Train Loss]: " << trainLoss
+                auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( endTimestamp - startTimestamp).count();
+                auto durationEval = std::chrono::duration_cast<std::chrono::milliseconds>( endTimestamp - startEvalutation).count();
+                std::cout << "[Duration total / evaluation: " << duration << " / " << durationEval << " millis] | [Train Loss]: " << trainLoss
                     << " | [Valid Loss]: " << bestValidationLoss <<std::endl;
 
                 // Update best iteration / best validation error
@@ -179,25 +205,20 @@ namespace microgbt {
          * @return
          */
         double sumScore(const Eigen::RowVectorXd &x, long numIterations) const {
-            long double score = 0.0;
+            double score = 0.0;
             numIterations = (numIterations == 0) ? (long)_trees.size() : numIterations;
-            int limit = 0;
-            for (auto &tree: _trees) {
-                if (limit < numIterations) {
-                    score += tree.score(x);
-                    limit++;
-                }
-                else
-                    break;
+            long limit =  std::min(static_cast<long>(_trees.size()), numIterations);
+            for (long i = 0; i < limit; i++) {
+                score += _trees[i].score(x);
             }
 
-            return (double)score;
+            return score;
         }
 
         Vector predictDataset(const Dataset &trainSet) const {
-            size_t numSamples = trainSet.nRows(), numTrees = _trees.size();
+            long numSamples = trainSet.nRows(), numTrees = static_cast<long>(_trees.size());
             Vector scores(numSamples);
-            for (size_t i = 0; i < numSamples; i++) {
+            for (long i = 0; i < numSamples; i++) {
                 scores[i] = predict(trainSet.row(i), numTrees);
             }
 
