@@ -18,5 +18,5 @@ jobs:
     - name: build
       run: ./dev-scripts/runBuild.sh
     - name: test
-      run: cd build && ./bin/unit_tests
+      run: ./dev-scripts/runTests.sh
 
