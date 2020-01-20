@@ -7,14 +7,15 @@
 namespace microgbt {
 
     /**
-     * A Gradient Boosting related Histogram
+     * A poor man's Histogram implementation
      *
      * Given a tuple of ("feature vector", "gradient vector", "hessian vector") constructs a histogram with domain
      * the feature vector values and binned gradient / hessian values
      */
     class Histogram {
 
-        double SMALLEST_BIN_LENGTH = 10e-6;
+        // Histogram bins minimum length
+        double MINIMUM_BIN_LENGTH = 10e-6;
 
         // Histogram limits
         double _minValue = std::numeric_limits<double>::max(), _maxValue = std::numeric_limits<double>::min(), _binLength = 0;
@@ -47,7 +48,7 @@ namespace microgbt {
             }
 
             // Length of bins
-            _binLength = std::max((_maxValue - _minValue) / (double)_numBins, SMALLEST_BIN_LENGTH);
+            _binLength = std::max((_maxValue - _minValue) / (double)_numBins, MINIMUM_BIN_LENGTH);
         }
 
         /**
@@ -109,33 +110,13 @@ namespace microgbt {
         inline long bin(double value) const {
             if ( value < _minValue) {
                 return 0;
-            } else if ( value > _maxValue) {
-                return _numBins - 1;
             }
 
             return std::min(static_cast<long>(std::floor( (value - _minValue) / _binLength)), _numBins - 1);
         }
 
         /**
-         * Subtract two histograms. Subtract the gradient / hessian values of the histogram assuming identical
-         * histogram bins.
-         *
-         * @param other
-         * @return
-         */
-        Histogram operator-(const Histogram &other) const {
-            Histogram h(*this);
-            for (long i = 0 ; i < h._numBins; i++) {
-                h._gradientHist[i] -= other._gradientHist[i];
-                h._hessianHist[i] -= other._hessianHist[i];
-                h._count[i] -= other._count[i];
-            }
-
-            return h;
-        }
-
-        /**
-         * Subtract with other histogram
+         * Subtract this with other histogram
          * @param other
          */
         void subtract(const Histogram &other) {

@@ -4,6 +4,7 @@
 #include <chrono>
 #include <memory>
 #include <chrono>
+#include <algorithm>
 
 #include "dataset.h"
 #include "trees/tree.h"
@@ -204,19 +205,14 @@ namespace microgbt {
          * @return
          */
         double sumScore(const Eigen::RowVectorXd &x, long numIterations) const {
-            long double score = 0.0;
+            double score = 0.0;
             numIterations = (numIterations == 0) ? (long)_trees.size() : numIterations;
-            int limit = 0;
-            for (auto &tree: _trees) {
-                if (limit < numIterations) {
-                    score += tree.score(x);
-                    limit++;
-                }
-                else
-                    break;
+            long limit =  std::min(static_cast<long>(_trees.size()), numIterations);
+            for (long i = 0; i < limit; i++) {
+                score += _trees[i].score(x);
             }
 
-            return (double)score;
+            return score;
         }
 
         Vector predictDataset(const Dataset &trainSet) const {
