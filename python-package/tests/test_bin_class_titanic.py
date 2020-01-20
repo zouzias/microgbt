@@ -7,6 +7,8 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import roc_auc_score
 
 
+RANDOM_SEED = 123
+TEST_SIZE = 0.3
 params = {
     "gamma": 0.1,
     "lambda": 1.0,
@@ -39,7 +41,10 @@ def load_titanic():
 
     data = SimpleImputer().fit_transform(df)
 
-    X_train, X_valid, y_train, y_valid = train_test_split(data, target, test_size=0.30, random_state=42, shuffle=True)
+    X_train, X_valid, y_train, y_valid = train_test_split(data, target,
+                                                          test_size=TEST_SIZE,
+                                                          random_state=RANDOM_SEED,
+                                                          shuffle=True)
     y_train = y_train.astype(np.double)
     y_valid = y_valid.astype(np.double)
     return X_train, X_valid, y_train, y_valid
@@ -98,5 +103,4 @@ def test_microgbt_titanic_roc():
 
     roc = roc_auc_score(y_valid, y_valid_preds)
 
-    print(roc)
-    assert False
+    assert roc > 0.7, "Area under the curve must be more than 0.7"

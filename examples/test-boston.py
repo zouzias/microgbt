@@ -11,6 +11,9 @@ from sklearn.datasets import load_boston
 logging.config.fileConfig("logging.ini", disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 
+TEST_SPLIT = 0.1
+RANDOM_SEED = 123
+
 def regression_metrics(gbt, X, y_true, label):
     y_preds = []
     for row in range(X.shape[0]):
@@ -34,13 +37,13 @@ print("Target dims: {}".format(target.shape))
 # Train / test split #
 ######################
 X_train, X_test, y_train, y_test = train_test_split(
-    data, target, test_size=0.10,
-    random_state=42, shuffle=True
+    data, target, test_size=TEST_SPLIT,
+    random_state=RANDOM_SEED, shuffle=True
 )
 
 X_train, X_valid, y_train, y_valid = train_test_split(
-    X_train, y_train, test_size=0.10,
-    random_state=42, shuffle=True
+    X_train, y_train, test_size=TEST_SPLIT,
+    random_state=RANDOM_SEED, shuffle=True
 )
 
 
@@ -51,7 +54,7 @@ params = {
     "max_depth": 4.0,
     "shrinkage_rate": 1.0,
     "min_split_gain": 0.1,
-    "learning_rate": 0.03,
+    "learning_rate": 0.1,
     "min_tree_size": 3,
     "num_boosting_rounds": 1000.0,
     "metric": 1.0
