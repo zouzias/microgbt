@@ -2,10 +2,10 @@
 
 echo "***************************"
 echo "***************************"
-echo "*      C++ tests          *"
+echo "*      Python tests       *"
 echo "***************************"
 echo "***************************"
-pushd build
-make
-./bin/unit_tests
+
+pushd python-package
+pytest
 popd

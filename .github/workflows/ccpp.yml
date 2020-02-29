@@ -17,6 +17,7 @@ jobs:
       run: pip install --user --upgrade setuptools wheel pytest
     - name: build
       run: ./dev-scripts/runBuild.sh
-    - name: test
+    - name: cpp tests
       run: ./dev-scripts/runTests.sh
-
+    - name: python tests
+      run: ./dev-scripts/runPythonTests.sh
