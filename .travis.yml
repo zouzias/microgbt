@@ -16,10 +16,9 @@ script:
   - pushd build
   - cmake ..
   - cmake --build .
-  - valgrind --leak-check=full --track-fds=yes --track-origins=yes --leak-check=full --show-leak-kinds=all --error-exitcode=1 ./bin/unit_tests
   - ./bin/unit_tests
   - popd
-  - ./dev-scripts/runInstallPyPackage.sh # install microgbtpy
+  - ./dev-scripts/runInstallPyPackage.sh # installs microgbtpy
   - pushd python-package && python3 -m pytest && popd
 
 after_success:
