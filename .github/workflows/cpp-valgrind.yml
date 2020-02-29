@@ -1,4 +1,4 @@
-name: C/C++ CI
+name: C++ valgrind memory leaks detection
 
 on: [push]
 

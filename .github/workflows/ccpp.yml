@@ -1,4 +1,4 @@
-name: C/C++ CI
+name: C++ Unit Testing
 
 on: [push]
 
@@ -14,7 +14,7 @@ jobs:
     - name: Install ubuntu deps
       run: sudo apt-get install -q gcc g++ cmake libeigen3-dev git wget python-dev
     - name: Install Python deps
-      run: pip install --user --upgrade setuptools wheel
+      run: pip install --user --upgrade setuptools wheel pytest
     - name: build
       run: ./dev-scripts/runBuild.sh
     - name: test
