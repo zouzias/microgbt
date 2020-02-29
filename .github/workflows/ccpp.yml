@@ -1,9 +1,9 @@
-name: C++ Unit Testing
+name: C++ CI
 
 on: [push]
 
 jobs:
-  build-ubuntu:
+  test-ubuntu:
 
     runs-on: ubuntu-latest
     
@@ -21,3 +21,20 @@ jobs:
       run: ./dev-scripts/runTests.sh
     - name: python3 tests
       run: ./dev-scripts/runPythonTests.sh
+
+  valgrind-ubuntu:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install gcc deps
+        run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+      - name: Install ubuntu deps
+        run: sudo apt-get install -q gcc g++ cmake libeigen3-dev git wget python-dev valgrind
+      - name: Install Python deps
+        run: pip install --user --upgrade setuptools wheel
+      - name: build
+        run: ./dev-scripts/runBuild.sh
+      - name: valgrind - memory leaks
+        run: ./dev-scripts/runValgrind.sh
