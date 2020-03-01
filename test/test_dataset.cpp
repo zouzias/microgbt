@@ -27,7 +27,7 @@ TEST(Dataset, Constructor)
 
     microgbt::Dataset leftDS(dataset, splitInfo, microgbt::SplitInfo::Left);
 
-    ASSERT_EQ(leftDS.nRows(), (long)left.size());
+    ASSERT_EQ(leftDS.nRows(), left.size());
     ASSERT_EQ(leftDS.numFeatures(), n);
 
 }
