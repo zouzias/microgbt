@@ -9,4 +9,4 @@ echo "***************************"
 echo "***************************"
 
 pushd python-package
-pytest
+python3 -m pytest tets/
