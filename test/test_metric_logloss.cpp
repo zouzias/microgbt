@@ -66,7 +66,7 @@ TEST(LogLoss, LogLossHessian)
     ASSERT_NEAR(hessian[0], 0.25, 1.0e-7);
 }
 
-TEST(LogLoss, LogLossLossAtMustBeZero)
+TEST(LogLoss, LogLossLossMustBeZero)
 {
     LogLoss logloss;
     Vector preds = Vector(10);
@@ -76,5 +76,5 @@ TEST(LogLoss, LogLossLossAtMustBeZero)
     std::fill(targets.begin(), targets.end(), 1.0);
 
     double loss = logloss.lossAt(preds, targets);
-    ASSERT_NEAR(loss, 0, 1.0e-7);
+    ASSERT_NEAR(loss, 0.0, 1.0e-3);
 }

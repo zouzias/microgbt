@@ -69,7 +69,8 @@ namespace microgbt {
             double loss = 0.0;
 
             for (size_t i = 0; i < n; i ++){
-                loss += labels[i] * log(predictions[i]) + (1 - labels[i]) * log(1 - predictions[i]);
+                double clippedPred = clip(predictions[i]);
+                loss += labels[i] * log(clippedPred) + (1 - labels[i]) * log(1 - clippedPred);
             }
 
             return - loss / n;
