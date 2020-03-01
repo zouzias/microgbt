@@ -1,5 +1,5 @@
+#include <trees/split_info.h>
 #include "gtest/gtest.h"
-#include "trees/split_info.h"
 
 TEST(microgbt, SplitInfo)
 {
