@@ -19,7 +19,6 @@ def get_requirements(env):
         return [x.strip() for x in fp.read().split("\n") if not x.startswith("#")]
 
 
-test_requirements = get_requirements("test")
 setup_requirements = ['pytest-runner']
 
 setup(
@@ -41,10 +40,8 @@ setup(
     include_package_data=True,
     keywords="gradient boosting trees",
     setup_requires=setup_requirements,
-    tests_requires=test_requirements,
     test_suite='tests',
     zip_safe=False,
-    packages=[""],
     package_dir={"": "."},
     package_data={"": ["microgbtpy.cpython-*.so"]},
 )
