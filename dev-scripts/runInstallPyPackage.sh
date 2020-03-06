@@ -6,9 +6,11 @@ pushd build || exit
 make
 # Copy .so library to examples for Python testing
 cp lib/*.so ../python-package/
+
+ls -lah
 popd
 
 pushd python-package/
 pip3 install sklearn pandas
-sudo python3 setup.py install
+pip3 install -U .
 popd
