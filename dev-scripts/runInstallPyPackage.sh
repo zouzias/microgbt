@@ -7,7 +7,7 @@ make
 # Copy .so library to examples for Python testing
 cp lib/*.so ../python-package/
 
-ls -lah
+ls -lah lib/
 popd
 
 pushd python-package/
