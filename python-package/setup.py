@@ -47,5 +47,5 @@ setup(
     test_suite='tests',
     zip_safe=False,
     package_dir={"": "."},
-    package_data={"": ["microgbtpy.cpython-*.so"]},
+    package_data={"": ["microgbtpy*.so"]},
 )
