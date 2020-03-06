@@ -1,6 +1,10 @@
 import os
 from setuptools import setup, Extension
 from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
+try:
+    from setuptools import setup, find_packages
+except ImportError:
+    from distutils.core import setup, find_packages
 
 
 __version__ = "0.0.1"
