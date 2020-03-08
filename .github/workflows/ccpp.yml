@@ -9,6 +9,8 @@ jobs:
     - uses: actions/checkout@v1
     - name: Install gcc deps
       run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+    - name: apt upgrade
+      run: sudo apt-get -qy upgrade
     - name: Install ubuntu deps
       run: sudo apt-get install -q gcc g++ cmake libeigen3-dev git wget build-essential libssl-dev libffi-dev libpython3.6-dev python3-pip python3-pytest python3-setuptools
     - name: Install Python deps
@@ -24,6 +26,8 @@ jobs:
       - uses: actions/checkout@v1
       - name: Install gcc deps
         run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+      - name: apt upgrade
+        run: sudo apt-get -qy upgrade
       - name: Install ubuntu deps
         run: sudo apt-get install -q gcc g++ cmake libeigen3-dev git wget build-essential libssl-dev libffi-dev libpython3.6-dev python3-pip python3-pytest python3-setuptools
       - name: Install Python deps
