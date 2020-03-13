@@ -7,7 +7,7 @@ using namespace microgbt;
 TEST(LogLoss, LogLossLogit)
 {
     LogLoss logloss;
-    ASSERT_NEAR(logloss.logit(1.0), 1 / ( 1 + exp(-1.0)), 1.0e-11);
+    ASSERT_NEAR(logloss.logit(1.0), 1 / (1 + exp(-1.0)), 1.0e-11);
 }
 
 TEST(LogLoss, LogLossMiddleValue)
