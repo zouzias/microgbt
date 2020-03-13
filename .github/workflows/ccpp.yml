@@ -6,19 +6,19 @@ jobs:
   unit-test-cpp-ubuntu:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - name: Install gcc deps
-      run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-    - name: apt upgrade
-      run: sudo ACCEPT_EULA=Y apt-get -qy upgrade
-    - name: Install ubuntu deps
-      run: sudo apt-get install -q gcc g++ cmake libeigen3-dev git wget build-essential libssl-dev libffi-dev libpython3-dev python3-pip python3-pytest python3-setuptools
-    - name: Install Python deps
-      run: pip3 install --user --upgrade wheel
-    - name: build
-      run: ./dev-scripts/runBuild.sh
-    - name: cpp tests
-      run: ./dev-scripts/runTests.sh
+      - uses: actions/checkout@v1
+      - name: Install gcc deps
+        run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+      - name: apt upgrade
+        run: sudo ACCEPT_EULA=Y apt-get -qy upgrade
+      - name: Install ubuntu deps
+        run: sudo apt-get install -q gcc g++ cmake libeigen3-dev git wget build-essential libssl-dev libffi-dev libpython3-dev python3-pip python3-pytest python3-setuptools
+      - name: Install Python deps
+        run: pip3 install --user --upgrade wheel
+      - name: build
+        run: ./dev-scripts/runBuild.sh
+      - name: cpp tests
+        run: ./dev-scripts/runTests.sh
 
   unit-test-python-ubuntu:
     runs-on: ubuntu-latest
@@ -34,6 +34,8 @@ jobs:
         run: pip3 install --user --upgrade wheel setuptools pip
       - name: build
         run: ./dev-scripts/runBuild.sh
+      - name: Run pip freeze
+        run: pip3 freeze
       - name: python unit test
         run: ./dev-scripts/runPythonTests.sh
 
@@ -52,13 +54,12 @@ jobs:
       - name: valgrind - memory leaks
         run: ./dev-scripts/runValgrind.sh
 
-
   clang-format-linter:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - uses: DoozyX/clang-format-lint-action@v0.5
         with:
-          source: './src'
-          extensions: 'h,cpp'
+          source: "./src"
+          extensions: "h,cpp"
           clangFormatVersion: 9
