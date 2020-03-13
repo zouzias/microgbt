@@ -8,4 +8,4 @@ echo "*      Python tests       *"
 echo "***************************"
 echo "***************************"
 
-py.test pytohn-package/tests/
+python3 -m pytest python-package/tests/
