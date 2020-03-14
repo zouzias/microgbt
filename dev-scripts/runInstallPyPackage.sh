@@ -12,5 +12,5 @@ popd
 
 pushd python-package/
 pip3 install sklearn pandas
-python3 setup.py install
+sudo python3 setup.py install
 popd
