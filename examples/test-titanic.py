@@ -11,6 +11,8 @@ from sklearn.preprocessing import LabelEncoder
 logging.config.fileConfig("logging.ini", disable_existing_loggers=False)
 logger = logging.getLogger(__name__)
 
+TEST_SPLIT = 0.3
+RANDOM_SEED = 123
 
 def binclass_metrics(gbt, X, y_true, label, show_report = False):
     y_preds = []
@@ -52,13 +54,13 @@ print("Input dataset dimensions {}".format(data.shape))
 print("Target dims: {}".format(target.shape))
 
 X_train, X_test, y_train, y_test = train_test_split(
-    data, target, test_size=0.15,
-    random_state=42, shuffle=True
+    data, target, test_size=TEST_SPLIT,
+    random_state=RANDOM_SEED, shuffle=True
 )
 
 X_train, X_valid, y_train, y_valid = train_test_split(
     X_train, y_train, test_size=0.15,
-    random_state=42, shuffle=True
+    random_state=RANDOM_SEED, shuffle=True
 )
 
 

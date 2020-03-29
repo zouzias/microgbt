@@ -1,80 +1,91 @@
 #pragma once
 
-#include<algorithm>
-#include<random>
-#include<cmath>
+#include <algorithm>
+#include <random>
+#include <cmath>
 
 #include "metric.h"
 
-namespace microgbt {
+namespace microgbt
+{
 
-    /**
+/**
      * Log loss metric
      *
      * Logistic loss: y_i ln(1 + exp(-pred_i)) + (1-y_i) ln( 1 + exp(pred_i))
      */
-    class LogLoss :
-            public Metric {
+class LogLoss : public Metric
+{
 
-    private:
-        // Numerical tolerance on boundary of log(x) and log(1-x) function in range [0,1]
-        double _eps;
+private:
+    // Numerical tolerance on boundary of log(x) and log(1-x) function in range [0,1]
+    double _eps;
 
-    public:
+public:
+    LogLoss() { _eps = 10e-8; }
 
-        LogLoss() { _eps = 10e-8; }
-
-        /**
+    /**
          * Clips value in numeric interval [_eps, 1 - _eps]
          *
          * @param value
          * @return
          */
-        inline double clip(double value) const {
-            if ( value > 1 - _eps ) {
-                return 1 - _eps;
-            } else if ( value < _eps) {
-                return _eps;
-            }
-
-            return value;
+    inline double clip(double value) const
+    {
+        if (value > 1 - _eps)
+        {
+            return 1 - _eps;
+        }
+        else if (value < _eps)
+        {
+            return _eps;
         }
 
-        inline double logit(double score) const { return clip(1.0 / (1 + exp(-score))); }
+        return value;
+    }
 
-        Vector gradients(const Vector &predictions, const Vector &labels) const override {
-            unsigned long sz = predictions.size();
-            Vector gradients(sz);
+    inline double logit(double score) const { return clip(1.0 / (1 + exp(-score))); }
 
-            for (unsigned long i = 0 ; i < sz; i++){
-                gradients[i] = predictions[i] - labels[i];
-            }
+    Vector gradients(const Vector &predictions, const Vector &labels) const override
+    {
+        unsigned long sz = predictions.size();
+        Vector gradients(sz);
 
-            return gradients;
+        for (unsigned long i = 0; i < sz; i++)
+        {
+            gradients[i] = predictions[i] - labels[i];
         }
 
-        Vector hessian(const Vector &predictions) const override {
-            unsigned long sz = predictions.size();
-            Vector hessians(sz);
+        return gradients;
+    }
 
-            for (unsigned long i = 0 ; i < sz; i++){
-                hessians[i] = predictions[i] * (1 - predictions[i]);
-            }
+    Vector hessian(const Vector &predictions) const override
+    {
+        unsigned long sz = predictions.size();
+        Vector hessians(sz);
 
-            return hessians;
+        for (unsigned long i = 0; i < sz; i++)
+        {
+            hessians[i] = predictions[i] * (1 - predictions[i]);
         }
 
-        double lossAt(const Vector &predictions, const Vector &labels) const override {
-            size_t n = predictions.size();
-            double loss = 0.0;
+        return hessians;
+    }
 
-            for (size_t i = 0; i < n; i ++){
-                loss += labels[i] * log(predictions[i]) + (1 - labels[i]) * log(1 - predictions[i]);
-            }
+    double lossAt(const Vector &predictions, const Vector &labels) const override
+    {
+        size_t n = predictions.size();
+        double loss = 0.0;
 
-            return - loss / n;
+        for (size_t i = 0; i < n; i++)
+        {
+            double clippedPred = clip(predictions[i]);
+            loss += labels[i] * log(clippedPred) + (1 - labels[i]) * log(1 - clippedPred);
         }
 
-        double scoreToPrediction(double score) const override { return logit(score); }
-    };
-}
+        return -loss / n;
+    }
+
+    double scoreToPrediction(double score) const override { return logit(score); }
+};
+} // namespace microgbt

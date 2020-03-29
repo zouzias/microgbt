@@ -6,14 +6,11 @@ pushd build || exit
 make
 # Copy .so library to examples for Python testing
 cp lib/*.so ../python-package/
+
+ls -lah lib/
 popd
 
-pushd ./python-package/
+pushd python-package/
 pip3 install sklearn pandas
-pip3 install -U .
-popd
-
-# Run titanic example
-pushd ./examples/
-./test-titanic.py
+sudo python3 setup.py install
 popd

@@ -1,22 +1,51 @@
-name: C/C++ CI
+name: C++ CI
 
 on: [push]
 
 jobs:
-  build-ubuntu:
-
+  unit-test-cpp-ubuntu:
     runs-on: ubuntu-latest
-    
     steps:
-    - uses: actions/checkout@v1
-    - name: Install gcc deps
-      run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-    - name: Install ubuntu deps
-      run: sudo apt-get install -q gcc g++ cmake libeigen3-dev git wget python-dev valgrind
-    - name: Install Python deps
-      run: pip install --user cpp-coveralls setuptools wheel
-    - name: build
-      run: ./runBuild.sh
-    - name: test
-      run: cd build && ./bin/unit_tests
+      - uses: actions/checkout@v1
+      - name: Install gcc deps
+        run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+      - name: Install ubuntu deps
+        run: sudo apt-get install -q gcc g++ cmake libeigen3-dev git wget build-essential libssl-dev libffi-dev libpython3-dev python3-pip python3-pytest python3-setuptools
+      - name: build cpp project
+        run: ./dev-scripts/runBuild.sh
+      - name: cpp unit tests
+        run: ./dev-scripts/runTests.sh
 
+  unit-test-python-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install gcc deps
+        run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+      - name: apt upgrade
+        run: sudo ACCEPT_EULA=Y apt-get -qy upgrade
+      - name: Install ubuntu deps
+        run: sudo apt-get install -q gcc g++ cmake libeigen3-dev git wget build-essential libssl-dev libffi-dev libpython3-dev python3-pip python3-pytest python3-setuptools
+      - name: Install Python deps
+        run: pip3 install --user --upgrade wheel setuptools pip
+      - name: build
+        run: ./dev-scripts/runBuild.sh
+      - name: Install python package 'microgbt' 
+        run:  ./dev-scripts/runInstallPyPackage.sh
+      - name: python unit test
+        run: ./dev-scripts/runPythonTests.sh
+
+  valgrind-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install gcc deps
+        run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+      - name: Install ubuntu deps
+        run: sudo apt-get install -q gcc g++ cmake libeigen3-dev git wget python-dev valgrind
+      - name: Install Python deps
+        run: pip install --user --upgrade setuptools wheel
+      - name: build
+        run: ./dev-scripts/runBuild.sh
+      - name: valgrind - memory leaks
+        run: ./dev-scripts/runValgrind.sh

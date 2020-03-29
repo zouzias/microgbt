@@ -6,33 +6,34 @@
 #include "split_info.h"
 #include "../metrics/metric.h"
 
+namespace microgbt
+{
 
-namespace microgbt {
-
-    /**
+/**
      * A decision / regression tree with binary splits
      */
-    class Tree {
+class Tree
+{
 
-        // Maximum depth of tree
-        int _maxDepth;
+    // Maximum depth of tree
+    int _maxDepth;
 
-        // Gradient boosting parameters
-        double _lambda, _minSplitGain, _minTreeSize;
+    // Gradient boosting parameters
+    double _lambda, _minSplitGain, _minTreeSize;
 
-        // Root of tree
-        std::shared_ptr<TreeNode> _root;
+    // Root of tree
+    std::shared_ptr<TreeNode> _root;
 
-    public:
+public:
+    Tree(double lambda, double minSplitGain, double minTreeSize, int maxDepth)
+    {
+        _lambda = lambda;
+        _minSplitGain = minSplitGain;
+        _maxDepth = maxDepth;
+        _minTreeSize = minTreeSize;
+    }
 
-        Tree(double lambda, double minSplitGain, double minTreeSize, int maxDepth) {
-            _lambda = lambda;
-            _minSplitGain = minSplitGain;
-            _maxDepth = maxDepth;
-            _minTreeSize = minTreeSize;
-        }
-
-         /**
+    /**
           * Recursively (and greedily) build regression tree using 'optimal greedy' binary splits
           * based on gradient & Hessian vectors.
           *
@@ -42,22 +43,23 @@ namespace microgbt {
           * @param hessian Vector of second derivatives, Hessian
           * @param shrinkage Shrinkage rate
           */
-        void build(const Dataset &trainSet, const Vector &previousPreds,
-                   const Vector &gradient,
-                   const Vector &hessian,
-                   double shrinkage) {
+    void build(const Dataset &trainSet, const Vector &previousPreds,
+               const Vector &gradient,
+               const Vector &hessian,
+               double shrinkage)
+    {
 
-            this->_root = std::unique_ptr<TreeNode>(new TreeNode(_lambda, _minSplitGain, _minTreeSize, _maxDepth));
-            int depth = 0;
-            this->_root->build(trainSet, previousPreds, gradient, hessian, shrinkage, depth);
-        }
+        this->_root = std::unique_ptr<TreeNode>(new TreeNode(_lambda, _minSplitGain, _minTreeSize, _maxDepth));
+        int depth = 0;
+        this->_root->build(trainSet, previousPreds, gradient, hessian, shrinkage, depth);
+    }
 
-        /**
+    /**
          * Return tree score for a sample point, i.e., set of features
          *
          * @param sample A sample as row vector
          * @return Score of tree
          */
-        double score(const Eigen::RowVectorXd &sample) const { return _root->score(sample); }
-    };
-}
+    double score(const Eigen::RowVectorXd &sample) const { return _root->score(sample); }
+};
+} // namespace microgbt

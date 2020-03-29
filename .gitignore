@@ -1,10 +1,12 @@
 .idea/
 venv/
+**/*.pyc
 
 examples/*.log
 data/flight_delay.csv.gz
 **/*.so
 build/
+python-package/.eggs/
 python-package/dist/
 python-package/microgbtpy.egg-info/
 cmake-build-debug/
