@@ -1,6 +1,4 @@
 import os
-from setuptools import setup, Extension
-from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 try:
     from setuptools import setup, find_packages
 except ImportError:
@@ -8,12 +6,6 @@ except ImportError:
 
 
 __version__ = "0.0.1"
-
-# Based on https://stackoverflow.com/questions/45150304/how-to-force-a-python-wheel-to-be-platform-specific-when-building-it
-class BdistWheel(_bdist_wheel):
-    def finalize_options(self):
-        _bdist_wheel.finalize_options(self)
-        self.root_is_pure = False
 
 
 def get_requirements(env):
@@ -40,7 +32,6 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
     ],
-    cmdclass={'bdist_wheel': BdistWheel},
     include_package_data=True,
     keywords="gradient boosting trees",
     setup_requires=setup_requirements,
