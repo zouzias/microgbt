@@ -15,5 +15,5 @@ sudo pip uninstall -y microgbtpy
 
 pushd python-package/
 pip3 install sklearn pandas
-sudo python3 setup.py install
+sudo python3 setup.py build_ext install
 popd
