@@ -10,6 +10,9 @@ cp lib/*.so ../python-package/
 ls -lah lib/
 popd
 
+
+sudo pip uninstall -y microgbtpy
+
 pushd python-package/
 pip3 install sklearn pandas
 sudo python3 setup.py install
