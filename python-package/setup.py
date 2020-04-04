@@ -37,6 +37,7 @@ setup(
     setup_requires=setup_requirements,
     test_suite='tests',
     zip_safe=False,
+    packages=find_packages(),
     package_dir={"": "."},
     package_data={"": ["microgbtpy*.so"]},
 )
