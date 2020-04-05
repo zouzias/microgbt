@@ -16,6 +16,8 @@ SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # Look for eigen 3.3
 FIND_PACKAGE (Eigen3 3.3 REQUIRED NO_MODULE)
 
+# Find Python3
+find_package (Python3 COMPONENTS Interpreter Development)
 
 # place binaries and libraries according to GNU standards
 include(GNUInstallDirs)
