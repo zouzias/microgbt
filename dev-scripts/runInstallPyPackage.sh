@@ -11,7 +11,7 @@ ls -lah lib/
 popd
 
 
-sudo pip uninstall -y microgbtpy
+python3 -m pip install --user --upgrade pip
 
 pushd python-package/
 pip3 install --user sklearn pandas
