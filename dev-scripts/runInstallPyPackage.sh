@@ -10,7 +10,10 @@ cp lib/*.so ../python-package/
 ls -lah lib/
 popd
 
+
+python3 -m pip install --user --upgrade pip
+
 pushd python-package/
-pip3 install sklearn pandas
-sudo python3 setup.py install
+pip3 install --user sklearn pandas
+python3 setup.py build_ext install --user
 popd

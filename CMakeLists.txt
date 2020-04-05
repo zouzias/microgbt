@@ -16,6 +16,10 @@ SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # Look for eigen 3.3
 FIND_PACKAGE (Eigen3 3.3 REQUIRED NO_MODULE)
 
+# Force to make use of Python3
+set(Python_ADDITIONAL_VERSIONS 3.6)
+find_package (Python3 COMPONENTS Interpreter Development)
+find_package(PythonLibs 3 REQUIRED)
 
 # place binaries and libraries according to GNU standards
 include(GNUInstallDirs)
@@ -67,7 +71,7 @@ include_directories( ${EIGEN3_INCLUDE_DIRS} )
 # For Python integration
 add_subdirectory(pybind11)
 
-pybind11_add_module(microgbtpy src/metrics/metric.h src/trees/tree.h src/GBT.h src/dataset.h src/metrics/logloss.h
+pybind11_add_module(microgbtpy MODULE src/metrics/metric.h src/trees/tree.h src/GBT.h src/dataset.h src/metrics/logloss.h
         src/trees/treenode.h src/trees/split_info.h
         src/python_api.cpp)
 #########################
