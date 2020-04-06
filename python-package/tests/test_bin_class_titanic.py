@@ -1,4 +1,5 @@
 import microgbtpy
+import os
 import numpy as np
 import pandas as pd
 from sklearn.impute import SimpleImputer
@@ -18,12 +19,15 @@ params = {
     "learning_rate": 0.1,
     "min_tree_size": 3,
     "num_boosting_rounds": 10000.0,
-    "metric": 0.0
+    "metric": 0.0,
 }
+
 
 def load_titanic():
     """ Load Titanic dataset """
-    df = pd.read_csv("../data/titanic.csv")
+
+    pwd = os.path.dirname(os.path.abspath(__file__))
+    df = pd.read_csv(os.path.join(pwd, "../../data/titanic.csv"))
 
     target = df["Survived"].astype(int).values.astype(np.double)
 
@@ -33,35 +37,20 @@ def load_titanic():
     df["Embarked_S"] = df["Embarked"].isin(["S"]).astype(int)
     df["is_male"] = df["Sex"].isin(["male"]).astype(int)
 
-    df = df[['Pclass','Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Cabin', 'Embarked']]
+    df = df[["Pclass", "Sex", "Age", "SibSp", "Parch", "Fare", "Cabin", "Embarked"]]
 
-    cats = ['Sex', 'Parch', 'Cabin', 'Embarked']
+    cats = ["Sex", "Parch", "Cabin", "Embarked"]
     for cat in cats:
         df[cat] = LabelEncoder().fit_transform(df[cat].astype(str))
 
     data = SimpleImputer().fit_transform(df)
 
-    X_train, X_valid, y_train, y_valid = train_test_split(data, target,
-                                                          test_size=TEST_SIZE,
-                                                          random_state=RANDOM_SEED,
-                                                          shuffle=True)
+    X_train, X_valid, y_train, y_valid = train_test_split(
+        data, target, test_size=TEST_SIZE, random_state=RANDOM_SEED, shuffle=True
+    )
     y_train = y_train.astype(np.double)
     y_valid = y_valid.astype(np.double)
     return X_train, X_valid, y_train, y_valid
-
-
-
-
-def test_microgbt_input_params():
-    gbt = microgbtpy.GBT(params)
-
-    assert gbt.max_depth() == params["max_depth"]
-    assert gbt.min_split_gain() == params["min_split_gain"]
-    assert gbt.learning_rate() == params["min_split_gain"]
-    assert gbt.gamma() == params["gamma"]
-    assert gbt.get_lambda() == params["lambda"]
-    assert gbt.learning_rate() == params["learning_rate"]
-    assert gbt.best_iteration() == 0
 
 
 def test_microgbt_train_predict():
@@ -72,10 +61,7 @@ def test_microgbt_train_predict():
 
     # Train
     gbt = microgbtpy.GBT(params)
-    gbt.train(X_train, y_train,
-              X_valid, y_valid,
-              num_iters,
-              early_stopping_rounds)
+    gbt.train(X_train, y_train, X_valid, y_valid, num_iters, early_stopping_rounds)
 
     # Predict
     for x in X_valid:
@@ -91,10 +77,7 @@ def test_microgbt_titanic_roc():
 
     # Train
     gbt = microgbtpy.GBT(params)
-    gbt.train(X_train, y_train,
-              X_valid, y_valid,
-              num_iters,
-              early_stopping_rounds)
+    gbt.train(X_train, y_train, X_valid, y_valid, num_iters, early_stopping_rounds)
 
     # Predict
     y_valid_preds = []
@@ -103,4 +86,4 @@ def test_microgbt_titanic_roc():
 
     roc = roc_auc_score(y_valid, y_valid_preds)
 
-    assert roc > 0.7, "Area under the curve must be more than 0.7"
+    assert roc > 0.7, "Area under the curve must be greater than 0.7"

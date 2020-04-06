@@ -35,6 +35,7 @@ setup(
     include_package_data=True,
     keywords="gradient boosting trees",
     setup_requires=setup_requirements,
+    tests_require=get_requirements("test"),
     test_suite='tests',
     zip_safe=False,
     packages=find_packages(),
