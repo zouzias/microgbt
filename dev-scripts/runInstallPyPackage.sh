@@ -11,9 +11,10 @@ ls -lah lib/
 popd
 
 
+pip3 uninstall -y microgbtpy
 python3 -m pip install --user --upgrade pip
 
 pushd python-package/
-pip3 install --user sklearn pandas
+pip3 install --user -U sklearn pandas
 python3 setup.py build_ext install --user
 popd

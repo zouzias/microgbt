@@ -10,4 +10,3 @@ echo "***************************"
 
 pushd python-package/
 python3 -m pytest tests/
-popd
