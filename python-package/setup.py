@@ -1,8 +1,5 @@
 import os
-try:
-    from setuptools import setup, find_packages
-except ImportError:
-    from distutils.core import setup, find_packages
+from setuptools import setup, find_packages
 
 
 __version__ = "0.0.1"
@@ -32,13 +29,12 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
     ],
-    include_package_data=True,
     keywords="gradient boosting trees",
     setup_requires=setup_requirements,
     tests_require=get_requirements("test"),
     test_suite='tests',
     zip_safe=False,
-    packages=find_packages(),
-    package_dir={"": "."},
-    package_data={"": ["microgbtpy*.so"]},
+    include_package_data=True,
+    package_dir={'microgbt': '.'},
+    package_data={"microgbt": ["microgbtpy.cpython-37m-darwin.so"]},
 )

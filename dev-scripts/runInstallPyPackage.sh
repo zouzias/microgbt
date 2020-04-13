@@ -13,8 +13,9 @@ popd
 
 pip3 uninstall -y microgbtpy
 python3 -m pip install --user --upgrade pip
+pip3 install --user -U sklearn pandas
 
 pushd python-package/
-pip3 install --user -U sklearn pandas
-python3 setup.py build_ext install --user
+python setup.py bdist_wheel
+pip install dist/microgbtpy*.whl --user
 popd
