@@ -11,7 +11,7 @@ def get_requirements(env):
         return [x.strip() for x in fp.read().split("\n") if not x.startswith("#")]
 
 
-setup_requirements = ['pytest-runner']
+setup_requirements = ['pytest-runner', 'wheel']
 
 setup(
     name="microgbtpy",
