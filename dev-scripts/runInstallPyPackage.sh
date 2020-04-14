@@ -11,11 +11,11 @@ ls -lah lib/
 popd
 
 
-pip3 uninstall -y microgbtpy
 python3 -m pip install --user --upgrade pip
-pip3 install --user -U sklearn pandas wheel
+python3 -m pip uninstall -y microgbtpy
+python3 -m pip3 install --user -U sklearn pandas wheel
 
 pushd python-package/
 python3 setup.py bdist_wheel
-pip3 install dist/microgbtpy*.whl --user
+python3 -m pip install dist/microgbtpy*.whl --user
 popd
