@@ -1,9 +1,7 @@
 import os
 from setuptools import setup
 
-
 __version__ = "0.0.1"
-
 
 def get_requirements(env):
     """Get requirements from requirements.txt file"""
@@ -35,6 +33,6 @@ setup(
     test_suite='tests',
     zip_safe=False,
     include_package_data=True,
-    package_dir={'microgbt': '.'},
-    package_data={"microgbt": ["microgbtpy.cpython-37m-darwin.so"]},
+    package_dir={'': '.'},
+    package_data={"": ["microgbtpy*.so"]},
 )
