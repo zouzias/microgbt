@@ -13,7 +13,7 @@ popd
 
 python3 -m pip install --user --upgrade pip
 python3 -m pip uninstall -y microgbtpy
-python3 -m pip install --user -U sklearn pandas wheel
+python3 -m pip install --user -U sklearn pandas wheel auditwheel
 
 
 pushd python-package/
