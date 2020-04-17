@@ -1,20 +1,8 @@
 #!/usr/bin/env bash
 
-# Run make and copy shared library to examples
-
-pushd build || exit
-make
-# Copy .so library to examples for Python testing
-cp lib/*.so ../python-package/
-
-ls -lah lib/
-popd
-
-
-pip3 uninstall -y microgbtpy
 python3 -m pip install --user --upgrade pip
+python3 -m pip uninstall -y microgbtpy
+python3 -m pip install --user -U sklearn pandas
 
-pushd python-package/
-pip3 install --user -U sklearn pandas
-python3 setup.py build_ext install --user
-popd
+echo "Installing package..."
+pip3 install .

@@ -27,7 +27,7 @@ jobs:
       - name: Install ubuntu deps
         run: sudo apt-get install -q gcc g++ cmake libeigen3-dev git wget build-essential libssl-dev libffi-dev libpython3-dev python3-pip python3-pytest python3-setuptools
       - name: Install Python deps
-        run: pip3 install --user --upgrade wheel setuptools pip
+        run: pip3 install --user --upgrade wheel setuptools pip auditwheel
       - name: build
         run: ./dev-scripts/runBuild.sh
       - name: Install python package 'microgbt' 
