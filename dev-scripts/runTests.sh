@@ -10,4 +10,3 @@ echo "***************************"
 pushd build
 make
 ./test/unit_tests
-popd
