@@ -6,4 +6,3 @@ python3 -m pip install --user -U sklearn pandas
 
 echo "Installing package..."
 pip3 install .
-popd
