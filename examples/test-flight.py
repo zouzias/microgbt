@@ -88,7 +88,7 @@ print(gbt)
 num_iters = 100
 early_stopping_rounds = 10
 y_train = y_train.astype(np.double)
-gbt.train(X_train, y_train, X_valid, y_valid, num_iters, early_stopping_rounds)
+gbt.train(X_train, y_train, X_valid, y_valid, cat_indices, num_iters, early_stopping_rounds)
 
 logger.info("Best iteration {}".format(gbt.best_iteration()))
 binclass_metrics(gbt, X_train, y_train, "Training")
