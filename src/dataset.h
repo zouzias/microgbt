@@ -4,6 +4,7 @@
 #include <Eigen/Dense>
 #include <numeric>
 #include <memory>
+#include <set>
 
 #include "trees/split_info.h"
 #include "types.h"
@@ -30,56 +31,58 @@ class Dataset
     VectorT _rowIndices;
 
     /**
-         * Return sorted indices from an Eigen vector
-         * @param v
-         * @return
-         */
-    Eigen::VectorXi sortIndices(long colIndex) const
-    {
+     * Indices of input features that correspond to categoricals
+     */
+    std::set<long> _categoricalFeatures;
 
-        // initialize original index locations
-        Eigen::VectorXd v = col(colIndex);
-        long n = v.size();
+    /**
+     * Return sorted indices from an Eigen vector
+     * @param v
+     * @return
+     */
+         Eigen::VectorXi sortIndices(long colIndex) const{
 
-        Eigen::VectorXi idx(n);
-        // idx contains now 0,1,...,v.size() - 1
-        std::iota(idx.data(), idx.data() + idx.size(), 0);
+            // initialize original index locations
+            Eigen::VectorXd v = col(colIndex);
+            long n = v.size();
 
-        // sort indexes based on comparing values in v
-        std::sort(idx.data(), idx.data() + idx.size(),
-                  [&v](long i1, long i2) { return v[i1] < v[i2]; });
+            Eigen::VectorXi idx(n);
+            // idx contains now 0,1,...,v.size() - 1
+            std::iota(idx.data(), idx.data() + idx.size(), 0);
 
-        return idx;
-    }
+            // sort indexes based on comparing values in v
+            std::sort(idx.data(), idx.data() + idx.size(),
+                 [&v](long i1, long i2) {return v[i1] < v[i2];});
 
-    inline Eigen::RowVectorXd col(long colIndex) const
-    {
-        Eigen::RowVectorXd column(_rowIndices.size());
-        for (size_t i = 0; i < _rowIndices.size(); i++)
-        {
-            column[i] = _X->coeffRef(_rowIndices[i], colIndex);
+            return idx;
         }
-        return column;
-    }
 
-public:
-    Dataset() = default;
+    public:
 
-    Dataset(const MatrixType &X, const Vector &y) : _sortedMatrixIdx(X.rows(), X.cols()),
-                                                    _rowIndices(y.size())
-    {
-        _X = std::make_shared<MatrixType>(X);
-        _y = std::make_shared<Vector>(y);
-        // By default, all rows are included in the dataset
-        std::iota(_rowIndices.begin(), _rowIndices.end(), 0);
-
-        for (long j = 0; j < X.cols(); j++)
-        {
-            _sortedMatrixIdx.col(j) = sortIndices(j);
+        Dataset() = default;
+        Dataset(const MatrixType& X, const Vector &y) {
+            Dataset(X, y, VectorT());
         }
-    }
 
     Dataset(Dataset const &dataset) = default;
+
+
+    Dataset(const MatrixType& X, const Vector &y, const VectorT& categoricalFeatures):
+        _sortedMatrixIdx(X.rows(), X.cols()),
+        _rowIndices(y.size()),
+        _categoricalFeatures() {
+            _X = std::make_shared<MatrixType>(X);
+            _y = std::make_shared<Vector>(y);
+
+            _categoricalFeatures.insert(categoricalFeatures.begin(), categoricalFeatures.end());
+
+            // By default, all rows are included in the dataset
+            std::iota(_rowIndices.begin(), _rowIndices.end(), 0);
+
+            for ( long j = 0; j < X.cols(); j++) {
+                _sortedMatrixIdx.col(j) = sortIndices(j);
+            }
+        }
 
     /**
          * Construct a Dataset, given a binary split gain and lef/right side parameter
@@ -152,6 +155,25 @@ public:
          *
          * @param colIndex Feature / column of above matrix
          */
-    inline Eigen::RowVectorXi sortedColumnIndices(long colIndex) const { return _sortedMatrixIdx.col(colIndex); }
-};
-} // namespace microgbt
+     inline Eigen::RowVectorXi sortedColumnIndices(long colIndex) const { return _sortedMatrixIdx.col(colIndex); }
+
+        /**
+         * Return true if column index corresponds to categorical feature
+         * @param colIndex
+         * @return
+         */
+        inline bool isCategorical(long colIndex) const {
+            auto found = _categoricalFeatures.find(colIndex);
+            return found != _categoricalFeatures.end();
+
+        }
+
+        inline Eigen::RowVectorXd col(long colIndex) const {
+            Eigen::RowVectorXd column(_rowIndices.size());
+            for (size_t i = 0; i < _rowIndices.size(); i++) {
+                column[i] = _X->coeffRef(_rowIndices[i], colIndex);
+            }
+            return column;
+        }
+    };
+}

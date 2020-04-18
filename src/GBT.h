@@ -25,8 +25,8 @@ class GBT
     std::vector<Tree> _trees;
     std::unique_ptr<Metric> _metric;
 
-    /**
-         * Return a single decision/regression tree given training data, gradient, hessian vectors and shrinkage rate
+        /**
+         * Return a single decision/regression tree given input train data, Gradient vector, Hessian vector and shrinkage rate
          *
          * @param trainSet Input train dataset (features matrix and target vector)
          * @param gradient Gradient vector: each coordinate corresponds to sample (row index)
@@ -89,12 +89,12 @@ public:
          * @param numBoostRound Number of boosting rounds (# of trees)
          * @param earlyStoppingRounds number of rounds to consider for early stopping, i.e., if there is not improvement
          */
-    void trainPython(const MatrixType &trainX, const Vector &trainY,
-                     const MatrixType &validX, const Vector &validY,
-                     int numBoostRound, int earlyStoppingRounds)
-    {
+    void trainPython(const MatrixType& trainX, const Vector& trainY,
+            const MatrixType& validX, const Vector& validY,
+            const VectorT& categoricals, int numBoostRound, int earlyStoppingRounds) {
+        Dataset trainSet(trainX, trainY, categoricals);
+        Dataset validSet(validX, validY, categoricals);
 
-        Dataset trainSet(trainX, trainY), validSet(validX, validY);
         train(trainSet, validSet, numBoostRound, earlyStoppingRounds);
     }
 
@@ -106,15 +106,14 @@ public:
          * @param numBoostRound  Number of boosting rounds
          * @param earlyStoppingRounds number of rounds to consider for early stopping, i.e., if there is not improvement
          */
-    void train(const Dataset &trainSet, const Dataset &validSet, int numBoostRound, int earlyStoppingRounds)
-    {
+    void train(const Dataset &trainSet, const Dataset &validSet,
+            int numBoostRound, int earlyStoppingRounds) {
 
         long bestIteration = 0;
         double learningRate = _shrinkageRate, bestValidationLoss = std::numeric_limits<double>::max();
 
         // For each iteration, grow an additional tree
-        for (long iterCount = 0; iterCount < numBoostRound; iterCount++)
-        {
+        for (long iterCount = 0; iterCount < numBoostRound; iterCount++) {
 
             std::cout << "[Iteration: " << iterCount << "]" << std::endl;
             auto startTimestamp = std::chrono::high_resolution_clock::now();
@@ -146,29 +145,29 @@ public:
             double currentValidationLoss = _metric->lossAt(validPreds, validSet.y());
 
             auto endTimestamp = std::chrono::high_resolution_clock::now();
-            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTimestamp - startTimestamp).count();
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    endTimestamp - startTimestamp).count();
             std::cout << "[Duration: " << duration << " millis] | [Train Loss]: " << trainLoss
                       << " | [Valid Loss]: " << bestValidationLoss << std::endl;
 
             // Update best iteration / best validation error
-            if (currentValidationLoss < bestValidationLoss)
-            {
+            if (currentValidationLoss < bestValidationLoss) {
                 bestValidationLoss = currentValidationLoss;
                 bestIteration = iterCount;
             }
 
             // Check for early stopping
             // Namely, if there is no improvement in the last early_stopping_rounds, then stop
-            if (iterCount - bestIteration >= earlyStoppingRounds)
-            {
+            if (iterCount - bestIteration >= earlyStoppingRounds) {
                 std::cout << "Early stopping, best iteration is:" << bestIteration;
                 std::cout << "Train Loss: " << trainLoss << "| Valid Loss: " << bestValidationLoss << std::endl;
                 break;
             }
-        }
 
-        _bestIteration = bestIteration;
+            _bestIteration = bestIteration;
+        }
     }
+
 
     /**
          * Returns the prediction of a sample vector (vector of features)
