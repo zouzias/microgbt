@@ -6,7 +6,9 @@ jobs:
   unit-test-cpp-ubuntu:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'true'
       - name: Install gcc deps
         run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
       - name: Install ubuntu deps
@@ -19,7 +21,9 @@ jobs:
   unit-test-python-ubuntu:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'true'
       - name: Install gcc deps
         run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
       - name: apt upgrade
@@ -38,7 +42,9 @@ jobs:
   valgrind-ubuntu:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'true'
       - name: Install gcc deps
         run: sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
       - name: Install ubuntu deps
