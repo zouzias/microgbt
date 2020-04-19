@@ -15,7 +15,7 @@ script:
   - pushd build
   - cmake ..
   - cmake --build .
-  - ./bin/unit_tests
+  - ./test/unit_tests
   - popd
   - ./dev-scripts/runInstallPyPackage.sh # installs microgbtpy
   - pushd python-package && python3 -m pytest && popd

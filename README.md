@@ -44,7 +44,13 @@ Currently, the following loss functions are supported:
 
 Set the parameter `metric` to 0.0 and 1.0 for logistic regression and RMSE, respectively.
 
+## Installation
+To install locally
+```bash
+pip install git+https://github.com/zouzias/microgbt.git
+```
 
+Then, follow the instructions to run the titanic classification dataset.
 ## Development (docker)
 
 ```bash
@@ -57,6 +63,7 @@ docker-compose run microgbt
 ```
 
 ### Binary Classification (Titanic)
+
 A binary classification example using the [Titanic dataset](https://www.kaggle.com/naresh31/titanic-machine-learning-from-disaster). Run
 
 ```bash
