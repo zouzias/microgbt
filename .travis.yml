@@ -21,7 +21,7 @@ script:
   - pushd python-package && python3 -m pytest && popd
 
 after_success:
-  - coveralls --include src --include include --gcov-options '\-lp' --root .. --build-root .;
+  - coveralls --include src --include include --gcov-options '\-lp' --root . --build-root build;
 
 notifications:
   email: false
