@@ -1,3 +1,4 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/3d452726865644cfa66435499b083722)](https://app.codacy.com/manual/zouzias/microgbt?utm_source=github.com&utm_medium=referral&utm_content=zouzias/microgbt&utm_campaign=Badge_Grade_Settings)
 [![Build Status](https://travis-ci.org/zouzias/microgbt.svg?branch=master)](https://travis-ci.org/zouzias/microgbt/builds)
 [![Coverage Status](https://coveralls.io/repos/github/zouzias/microgbt/badge.svg?branch=master)](https://coveralls.io/github/zouzias/microgbt?branch=master)
 [![License](https://img.shields.io/badge/license-Apache-blue.svg)](LICENSE)
