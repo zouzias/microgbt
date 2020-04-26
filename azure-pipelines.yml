@@ -1,0 +1,29 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- script: echo Hello, world!
+  displayName: 'Run a one-line script'
+
+- script: |
+    echo Add other tasks to build, test, and deploy your project.
+    sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+    sudo apt-get install -q gcc g++ cmake libeigen3-dev git wget build-essential libssl-dev libffi-dev libpython3-dev python3-pip python3-pytest python3-setuptools
+  displayName: 'install gcc deps / python3'
+
+- script: |
+    pip3 install --user --upgrade wheel setuptools pip
+  displayName: 'install gcc deps / python3'
+
+- script: |
+    pip3 install git+https://github.com/zouzias/microgbt.git
+  displayName: 'install python package'
+
