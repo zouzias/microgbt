@@ -13,7 +13,9 @@ add_executable(
 target_link_libraries(
     unit_tests
     gtest_main
-    microgbt)
+    microgbt
+    OpenMP::OpenMP_CXX
+)
 
 add_test(
   NAME

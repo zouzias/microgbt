@@ -109,6 +109,9 @@ public:
     void train(const Dataset &trainSet, const Dataset &validSet, int numBoostRound, int earlyStoppingRounds)
     {
 
+        // Allow nested threading in OpenMP
+        omp_set_max_active_levels(_maxDepth + 1);
+
         long bestIteration = 0;
         double learningRate = _shrinkageRate, bestValidationLoss = std::numeric_limits<double>::max();
 
