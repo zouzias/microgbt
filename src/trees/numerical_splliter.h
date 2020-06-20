@@ -20,7 +20,7 @@ class NumericalSplitter : public Splitter
         * @param hessian Hessian value
         * @return
         */
-    constexpr double objective(double gradient, double hessian) const
+    double objective(double gradient, double hessian) const
     {
         return (gradient * gradient) / (hessian + _lambda);
     }
@@ -36,7 +36,7 @@ class NumericalSplitter : public Splitter
         * @param H_l Hesssian on left split node
         * @return Gain on split, i.e., reduction on objective value
         */
-    constexpr double calc_split_gain(double G, double H, double G_l, double H_l) const
+    double calc_split_gain(double G, double H, double G_l, double H_l) const
     {
         return objective(G_l, H_l) + objective(G - G_l, H - H_l) - objective(G, H) / 2.0; // TODO: minus \gamma
     }

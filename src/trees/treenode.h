@@ -129,7 +129,7 @@ public:
         this->_splitFeatureIndex = bestGain.getBestFeatureId();
         this->_splitNumericValue = bestGain.splitValue();
 
-#pragma omp parallel sections default(none) shared(bestGain, shrinkage, depth)
+#pragma omp parallel sections
         {
             // Recurse on the left subtree
 #pragma omp section
