@@ -109,6 +109,7 @@ class NumericalSplitter : public Splitter
             // 2) For each feature, sorted the instances by feature numeric value
             //    - Compute gain for every feature (column of design matrix)
             std::vector<SplitInfo> gainPerFeature(numFeatures);
+#pragma omp parallel for schedule(static, 16) default(none) shared(numFeatures, gainPerFeature, cum_sum_G)
             for (size_t featureId = 0; featureId < numFeatures; featureId++) {
                 gainPerFeature[featureId] = optimumGainByFeature(dataset, featureId);
             }
