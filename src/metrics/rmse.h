@@ -30,6 +30,7 @@ public:
         long double loss = 0.0;
 
         size_t n = predictions.size();
+#pragma omp for reduction(+:loss)
         for (size_t i = 0; i < n; i++)
         {
             loss += pow(labels[i] - predictions[i], 2.0);

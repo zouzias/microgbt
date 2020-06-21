@@ -77,6 +77,7 @@ public:
         size_t n = predictions.size();
         double loss = 0.0;
 
+#pragma omp for private(lippedPred) reduction(+:loss)
         for (size_t i = 0; i < n; i++)
         {
             double clippedPred = clip(predictions[i]);
