@@ -4,9 +4,9 @@ import pandas as pd
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import root_mean_squared_error
 
-from sklearn.datasets import load_boston
+from sklearn.datasets import fetch_california_housing
 
 
 RANDOM_SEED = 123
@@ -24,10 +24,10 @@ params = {
 }
 
 
-def _load_boston():
-    """ Load Boston regression dataset """
+def _load_california_housing():
+    """Load California housing regression dataset"""
 
-    data, target = load_boston(return_X_y=True)
+    data, target = fetch_california_housing(return_X_y=True)
 
     print("Input dataset dimensions {}".format(data.shape))
     print("Target dims: {}".format(target.shape))
@@ -42,11 +42,11 @@ def _load_boston():
     return X_train, X_valid, y_train, y_valid
 
 
-def test_microgbt_boston_rmse():
+def test_microgbt_housing_rmse():
     num_iters = 100
     early_stopping_rounds = 10
 
-    X_train, X_valid, y_train, y_valid = _load_boston()
+    X_train, X_valid, y_train, y_valid = _load_california_housing()
 
     # Train
     gbt = microgbtpy.GBT(params)
@@ -57,4 +57,4 @@ def test_microgbt_boston_rmse():
     for x in X_valid:
         y_valid_preds.append(gbt.predict(x, gbt.best_iteration()))
 
-    assert mean_squared_error(y_valid, y_valid_preds, squared=False) < 10.0
+    assert root_mean_squared_error(y_valid, y_valid_preds) < 4

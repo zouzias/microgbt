@@ -24,7 +24,7 @@ params = {
 
 
 def load_titanic():
-    """ Load Titanic dataset """
+    """Load Titanic dataset"""
 
     pwd = os.path.dirname(os.path.abspath(__file__))
     df = pd.read_csv(os.path.join(pwd, "../../data/titanic.csv"))
