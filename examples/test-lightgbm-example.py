@@ -26,6 +26,7 @@ def regression_metrics(gbt, X_, y_, label):
 df_train = pd.read_csv('../data/lightgbm-regression.train', header=None, sep='\t')
 df_test = pd.read_csv('../data/lightgbm-regression.test', header=None, sep='\t')
 
+categoricals = []
 y = df_train[0].values
 y_test = df_test[0].values
 X = df_train.drop(0, axis=1).values
@@ -64,7 +65,7 @@ print(gbt)
 # Training related parameters
 num_iters = 5
 early_stopping_rounds = 5
-gbt.train(X_train, y_train, X_valid, y_valid, num_iters, early_stopping_rounds)
+gbt.train(X_train, y_train, X_valid, y_valid, categoricals, num_iters, early_stopping_rounds)
 
 
 logger.info("Best iteration {}".format(gbt.best_iteration()))
