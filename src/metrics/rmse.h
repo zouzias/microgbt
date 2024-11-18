@@ -1,44 +1,43 @@
 #pragma once
+
 #include <cmath>
 
 #include "metric.h"
 
-namespace microgbt
-{
+namespace microgbt {
 
-class RMSE : public Metric
-{
-public:
-    RMSE() = default;
+class RMSE : public Metric {
+ public:
+  RMSE() = default;
 
-    Vector gradients(const Vector &predictions, const Vector &labels) const override
-    {
-        Vector grads(predictions.size());
+  Vector gradients(const Vector &predictions,
+                   const Vector &labels) const override {
+    Vector grads(predictions.size());
 
-        for (size_t i = 0; i < predictions.size(); i++)
-        {
-            grads[i] = 2 * (predictions[i] - labels[i]);
-        }
-
-        return grads;
+    for (size_t i = 0; i < predictions.size(); i++) {
+      grads[i] = 2 * (predictions[i] - labels[i]);
     }
 
-    Vector hessian(const Vector &predictions) const override { return Vector(predictions.size(), 2.0); }
+    return grads;
+  }
 
-    double lossAt(const Vector &predictions, const Vector &labels) const override
-    {
-        long double loss = 0.0;
+  Vector hessian(const Vector &predictions) const override {
+    return Vector(predictions.size(), 2.0);
+  }
 
-        size_t n = predictions.size();
-        for (size_t i = 0; i < n; i++)
-        {
-            loss += pow(labels[i] - predictions[i], 2.0);
-        }
+  double lossAt(const Vector &predictions,
+                const Vector &labels) const override {
+    long double loss = 0.0;
 
-        return (double)std::sqrt(loss / n);
+    size_t n = predictions.size();
+    for (size_t i = 0; i < n; i++) {
+      loss += pow(labels[i] - predictions[i], 2.0);
     }
 
-    double scoreToPrediction(double score) const override { return score; }
+    return (double)std::sqrt(loss / n);
+  }
+
+  double scoreToPrediction(double score) const override { return score; }
 };
 
-} // namespace microgbt
+}  // namespace microgbt
