@@ -1,0 +1,5 @@
+# Google C/C++ Code Style settings
+# https://google.github.io/styleguide/cppguide.html
+
+Language: Cpp
+BasedOnStyle: Google
