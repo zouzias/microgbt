@@ -23,10 +23,11 @@ PYBIND11_MODULE(microgbtpy, m)
 
         // Train API
         gbt.def("train", &microgbt::GBT::trainPython,
-                "Python API for microGBT training",
-                py::call_guard<py::gil_scoped_release>(),
+            "Python API for microGBT training",
+            py::call_guard<py::gil_scoped_release>(),
                 pybind11::arg("train_X"), pybind11::arg("train_y"),
                 pybind11::arg("valid_x"), pybind11::arg("valid_y"),
+                pybind11::arg("categoricals"),
                 pybind11::arg("num_iterations"), pybind11::arg("early_stopping_rounds") = 5);
 
         // Predict API
